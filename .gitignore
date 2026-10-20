@@ -8,3 +8,9 @@ artifacts/
 data/
 coverage/
 .DS_Store
+
+# Credenciais de produção pertencem somente à VPS
+runtime.env
+secrets/
+*.pem
+*.key

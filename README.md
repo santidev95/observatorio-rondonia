@@ -45,7 +45,7 @@ npm run format:check
 | `tests/`              | Regras do cadastro e isolamento dos dados                      |
 | `docs/`               | Arquitetura, identidade e próximos passos                      |
 
-O endereço proposto é `rondonia.dadosabertos.org`, com caminhos como `/porto-velho` e `/ji-parana`. Domínio, DNS e hospedagem ainda não foram configurados.
+O endereço proposto é `rondonia.dadosabertos.org`, com caminhos como `/porto-velho` e `/ji-parana`. A infraestrutura de produção está preparada para VPS Hostinger com Docker, Redis privado, Cloudflare Tunnel e GitHub Actions. A instalação e a publicação inicial ainda estão pendentes; veja [produção](docs/producao.md).
 
 ## Consulta de dados
 

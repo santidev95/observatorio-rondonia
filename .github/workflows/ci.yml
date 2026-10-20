@@ -30,3 +30,7 @@ jobs:
       - run: npm test
       - run: npm run typecheck
       - run: npm run build
+      - name: Validar limites do deploy
+        run: |
+          bash -n deploy/*.sh
+          bash tests/deploy-validation.sh

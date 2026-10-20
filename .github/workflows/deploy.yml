@@ -1,0 +1,150 @@
+name: Publicar produção
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Tag ou commit já presente em master
+        required: true
+        default: master
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  image:
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.publish.outputs.digest }}
+      revision: ${{ steps.source.outputs.revision }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Conferir origem da revisão
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor HEAD origin/master
+          echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run typecheck
+      - name: Validar scripts de operação
+        run: |
+          bash -n deploy/deploy.sh deploy/ssh-entrypoint.sh
+          bash tests/deploy-validation.sh
+      - name: Construir imagem e conferir saúde
+        env:
+          REVISION: ${{ steps.source.outputs.revision }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="ghcr.io/santidev95/observatorio-rondonia:sha-$REVISION"
+          docker build --build-arg "APP_REVISION=$REVISION" --tag "$image" .
+          trap 'docker rm -f observatorio-smoke >/dev/null 2>&1 || true' EXIT
+          docker run --detach --name observatorio-smoke --read-only \
+            --tmpfs /tmp --tmpfs /app/.next/cache:uid=1000,gid=1000 \
+            --publish 127.0.0.1:3000:3000 "$image"
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --max-time 5 http://127.0.0.1:3000/api/health > /tmp/health.json; then
+              node -e 'const h=require("/tmp/health.json");if(h.status!=="ok"||h.revision!==process.env.REVISION)process.exit(1)'
+              exit 0
+            fi
+            sleep 2
+          done
+          echo 'A imagem não respondeu à verificação de saúde.' >&2
+          exit 1
+      - name: Publicar imagem no GHCR
+        id: publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVISION: ${{ steps.source.outputs.revision }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="ghcr.io/santidev95/observatorio-rondonia:sha-$REVISION"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null' EXIT
+          docker push "$image"
+          digest=$(docker buildx imagetools inspect "$image" --format '{{.Manifest.Digest}}')
+          [[ $digest =~ ^sha256:[a-f0-9]{64}$ ]]
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          printf 'Imagem: `%s@%s`\n' 'ghcr.io/santidev95/observatorio-rondonia' "$digest" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://rondonia.dadosabertos.org
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Atualizar aplicação pelo acesso restrito
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ vars.SSH_KNOWN_HOSTS }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_USER: ${{ vars.VPS_USER }}
+          VPS_PORT: ${{ vars.VPS_PORT }}
+          IMAGE_DIGEST: ${{ needs.image.outputs.digest }}
+          REVISION: ${{ needs.image.outputs.revision }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$DEPLOY_SSH_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          test -n "$VPS_HOST"
+          test -n "$VPS_USER"
+          [[ $IMAGE_DIGEST =~ ^sha256:[a-f0-9]{64}$ ]]
+          [[ $REVISION =~ ^[a-f0-9]{40}$ ]]
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          trap 'rm -f "$HOME/.ssh/deploy"' EXIT
+          printf '%s' "$GH_TOKEN" | ssh -T -i "$HOME/.ssh/deploy" \
+            -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 -p "${VPS_PORT:-22}" \
+            "$VPS_USER@$VPS_HOST" "deploy $IMAGE_DIGEST $REVISION"
+      - name: Conferir endereço público e revisão
+        env:
+          REVISION: ${{ needs.image.outputs.revision }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 18); do
+            if curl --fail --silent --max-time 10 https://rondonia.dadosabertos.org/api/health > /tmp/public-health.json; then
+              if node -e 'const h=require("/tmp/public-health.json");if(h.status!=="ok"||h.revision!==process.env.REVISION)process.exit(1)'; then
+                printf 'Produção verificada: https://rondonia.dadosabertos.org — `%s`\n' "$REVISION" >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+          echo 'O endereço público não confirmou a revisão. Verifique DNS e Tunnel.' >&2
+          exit 1

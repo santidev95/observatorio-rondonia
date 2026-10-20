@@ -11,3 +11,9 @@ data
 out
 .codex
 .agents
+
+# Credenciais de produção pertencem somente à VPS
+runtime.env
+secrets/
+*.pem
+*.key

@@ -15,5 +15,5 @@
 - Testes usam fixtures sintéticas. Coletas reais, commits, pushes, DNS e deploy precisam integrar o pedido autorizado.
 - Comandos: `npm ci`, `npm run dev`, `npm test`, `npm run typecheck`, `npm run build`, `npm run format:check`.
 - Mudanças de código: typecheck e testes pertinentes; rotas/build: build; mudanças visuais: desktop, celular, navegação e acessibilidade.
-- Informe validação local, CI remoto e publicação separadamente. Não há deploy configurado.
+- Informe validação local, CI remoto e publicação separadamente. O workflow de produção em `.github/workflows/deploy.yml` usa GHCR, SSH restrito e Cloudflare Tunnel; veja `docs/producao.md`. A configuração inicial da VPS ainda está pendente.
 - Antes de escrever código Next.js, leia a documentação correspondente em `node_modules/next/dist/docs/`. Esta versão pode diferir de exemplos antigos.

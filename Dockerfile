@@ -12,6 +12,10 @@ COPY . .
 RUN npm run build
 
 FROM node:22-bookworm-slim AS runner
+ARG APP_REVISION=development
+ENV APP_REVISION=$APP_REVISION
+LABEL org.opencontainers.image.source="https://github.com/santidev95/observatorio-rondonia"
+LABEL org.opencontainers.image.revision=$APP_REVISION
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
