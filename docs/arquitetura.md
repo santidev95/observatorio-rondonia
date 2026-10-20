@@ -59,9 +59,9 @@ A proposta anterior de API → coleta completa → arquivo durável → Redis co
 
 ## Operação e publicação
 
-O CI valida PRs e pushes com fixtures sintéticas, sem secrets ou consultas municipais. O workflow de produção separado valida e publica uma imagem Docker no GHCR em release estável ou acionamento manual, seguida de deploy por SSH restrito e verificação de saúde. A primeira instalação na VPS e o DNS ainda estão pendentes. Não há cron de coleta. Veja [produção e credenciais](producao.md).
+O CI valida PRs e pushes com fixtures sintéticas, sem secrets ou consultas municipais. O workflow de produção separado valida e publica uma imagem Docker no GHCR em release estável ou acionamento manual, seguida de deploy por SSH restrito e verificação de saúde. A instalação na VPS e o DNS estão configurados; a publicação inicial e o cache dos três módulos de Porto Velho foram verificados em 19/10/2026. Não há cron de coleta. Veja [produção e credenciais](producao.md).
 
-O runtime das rotas de dados é Node.js. Hospedagem futura em Workers exige validação específica. O endereço pretendido é `rondonia.dadosabertos.org`, com uma aplicação e paths por município.
+O runtime das rotas de dados é Node.js. Hospedagem futura em Workers exige validação específica. O endereço de produção é `rondonia.dadosabertos.org`, com uma aplicação e paths por município.
 
 ## Documentação consultada
 

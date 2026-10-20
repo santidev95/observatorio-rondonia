@@ -3,10 +3,10 @@ import assert from "node:assert/strict";
 import { getIntegrationStatus } from "../src/core/integration-status";
 import { getMunicipality, listMunicipalities } from "../src/municipalities";
 
-test("a legenda distingue o piloto em preparação de propostas ainda não iniciadas", () => {
+test("a legenda identifica somente o piloto publicado como integrado", () => {
   assert.equal(
     getIntegrationStatus(getMunicipality("porto-velho")!),
-    "in-progress",
+    "integrated",
   );
   assert.equal(
     getIntegrationStatus(getMunicipality("ji-parana")!),
@@ -17,19 +17,26 @@ test("a legenda distingue o piloto em preparação de propostas ainda não inici
     "not-integrated",
   );
   assert.equal(
-    listMunicipalities().some(
+    listMunicipalities().filter(
       (city) => getIntegrationStatus(city) === "integrated",
-    ),
-    false,
+    ).length,
+    1,
   );
 });
 
 test("ao menos um catálogo disponível identifica integração, mesmo em município piloto", () => {
   const city = structuredClone(getMunicipality("porto-velho")!);
+  for (const module of Object.values(city.modules)) module.status = "planned";
   city.modules.contratos = {
     status: "available",
     connectorId: "conector-sintetico",
     note: "Catálogo sintético disponível apenas neste teste.",
   };
   assert.equal(getIntegrationStatus(city), "integrated");
+});
+
+test("município piloto sem catálogo publicado continua em andamento", () => {
+  const city = structuredClone(getMunicipality("porto-velho")!);
+  for (const module of Object.values(city.modules)) module.status = "planned";
+  assert.equal(getIntegrationStatus(city), "in-progress");
 });

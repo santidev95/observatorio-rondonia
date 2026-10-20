@@ -131,20 +131,8 @@ jobs:
             -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes \
             -o ConnectTimeout=15 -p "${VPS_PORT:-22}" \
             "$VPS_USER@$VPS_HOST" "deploy $IMAGE_DIGEST $REVISION"
-      - name: Conferir endereço público e revisão
+      - name: Registrar publicação verificada
         env:
           REVISION: ${{ needs.image.outputs.revision }}
-        shell: bash
         run: |
-          set -euo pipefail
-          for attempt in $(seq 1 18); do
-            if curl --fail --silent --max-time 10 https://rondonia.dadosabertos.org/api/health > /tmp/public-health.json; then
-              if node -e 'const h=require("/tmp/public-health.json");if(h.status!=="ok"||h.revision!==process.env.REVISION)process.exit(1)'; then
-                printf 'Produção verificada: https://rondonia.dadosabertos.org — `%s`\n' "$REVISION" >> "$GITHUB_STEP_SUMMARY"
-                exit 0
-              fi
-            fi
-            sleep 5
-          done
-          echo 'O endereço público não confirmou a revisão. Verifique DNS e Tunnel.' >&2
-          exit 1
+          printf 'Produção verificada pela VPS via HTTPS público: https://rondonia.dadosabertos.org — `%s`\n' "$REVISION" >> "$GITHUB_STEP_SUMMARY"

@@ -61,8 +61,8 @@ export default async function MunicipalityPage({ params }: Props) {
           {moduleIds.map((id) => (
             <article className="module-card" key={id}>
               <span className="badge">
-                {portoVelho
-                  ? "Em implantação"
+                {city.modules[id].status === "available"
+                  ? "Disponível"
                   : city.modules[id].status === "not-started"
                     ? "Não iniciada"
                     : "Em preparação"}

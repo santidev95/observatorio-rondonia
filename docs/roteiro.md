@@ -8,7 +8,7 @@
 - Timeout e mensagens explícitas quando a fonte está indisponível.
 - Guia de contribuição, templates e CI sem publicação.
 
-A implementação não comprova publicação ou disponibilidade em produção. Obras e Receitas de Porto Velho também foram implementados; outros municípios continuam em preparação.
+Obras, Contratos e Receitas de Porto Velho foram publicados e verificados em produção em 19/10/2026; a disponibilidade das fontes continua sujeita à API municipal. Outros municípios permanecem em preparação.
 
 ## 1. Validar a experiência de pesquisa
 
@@ -30,4 +30,4 @@ Ampliar Obras e Receitas para outros municípios depois de verificar suas fontes
 
 ## 5. Publicação
 
-Escolher hospedagem, validar runtime, configurar domínio e executar verificações de produção. Coletas completas, agendamento, commits, pushes e deploy dependem de pedido autorizado.
+Produção instalada na VPS Hostinger, com Redis privado, Cloudflare Tunnel, domínio e deploy pelo Actions. Veja [operação e segredos](producao.md). Próxima etapa operacional: worker de Receitas, renovação a cada hora e última versão válida durante falhas, com data e estado de atualização visíveis. Essa atualização em segundo plano ainda precisa ser implementada.

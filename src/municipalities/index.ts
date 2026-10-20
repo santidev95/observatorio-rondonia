@@ -20,19 +20,19 @@ const municipalities: Municipality[] = geography.municipalities.map((city) => {
         : "A integração deste município ainda não foi iniciada. As fontes e a cobertura precisam ser levantadas.",
     modules: {
       contratos: {
-        status: pilot || proposed ? "planned" : "not-started",
+        status: pilot ? "available" : proposed ? "planned" : "not-started",
         connectorId: pilot ? "porto-velho-api-v1" : null,
         note: pilot
           ? "Conector implementado para consultar o catálogo oficial. Acesse o módulo para verificar a disponibilidade da fonte."
           : "Fonte e cobertura ainda não verificadas.",
       },
       obras: {
-        status: pilot || proposed ? "planned" : "not-started",
+        status: pilot ? "available" : proposed ? "planned" : "not-started",
         connectorId: pilot ? "porto-velho-api-v1" : null,
         note,
       },
       receitas: {
-        status: pilot || proposed ? "planned" : "not-started",
+        status: pilot ? "available" : proposed ? "planned" : "not-started",
         connectorId: pilot ? "porto-velho-api-v1" : null,
         note,
       },

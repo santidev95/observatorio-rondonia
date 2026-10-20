@@ -43,7 +43,17 @@ if compose up -d --wait --wait-timeout 120 redis app; then
     printf 'Deploy saudável: %s\n' "$revision"
     # Inicializa o Tunnel no primeiro deploy; containers já iguais não são recriados.
     compose --profile public up -d --no-deps cloudflared
-    exit 0
+    # Faz uma volta HTTPS pela Cloudflare a partir da VPS. A zona pode restringir
+    # países dos visitantes, incluindo o país variável dos runners do GitHub.
+    for attempt in $(seq 1 18); do
+      if docker exec "$container" node -e 'fetch("https://rondonia.dadosabertos.org/api/health",{signal:AbortSignal.timeout(10000)}).then(async r=>{if(!r.ok){console.error("Verificação pública HTTP "+r.status);process.exit(1)}const h=await r.json();if(h.status!=="ok"||h.revision!==process.argv[1])process.exit(1)}).catch(()=>process.exit(1))' "$revision"; then
+        printf 'HTTPS público e revisão confirmados: %s\n' "$revision"
+        exit 0
+      fi
+      sleep 5
+    done
+    printf '%s\n' 'Aplicação local saudável, mas o endereço público não confirmou a revisão. Verifique DNS e Tunnel.' >&2
+    exit 1
   fi
 fi
 

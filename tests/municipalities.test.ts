@@ -10,8 +10,11 @@ test("municípios têm slugs únicos e não anunciam dados ainda não integrados
   assert.equal(new Set(cities.map((city) => city.slug)).size, cities.length);
   for (const city of cities) {
     assert.equal(city.state, "RO");
-    for (const module of moduleIds)
-      assert.notEqual(city.modules[module].status, "available");
+    for (const module of moduleIds) {
+      if (city.slug === "porto-velho")
+        assert.equal(city.modules[module].status, "available");
+      else assert.notEqual(city.modules[module].status, "available");
+    }
   }
 });
 test("slug desconhecido não seleciona outro município por fallback", () => {
@@ -39,7 +42,7 @@ test("capacidade disponível exige conector identificado", () => {
   };
   assert.equal(municipalitySchema.safeParse(city).success, false);
 });
-test("conector de consulta do piloto corresponde ao cadastro sem anunciar publicação", () => {
+test("conector de consulta publicado do piloto corresponde ao cadastro", () => {
   assert.equal(
     portoVelhoSource.id,
     getMunicipality("porto-velho")?.modules.contratos.connectorId,

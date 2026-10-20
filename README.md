@@ -4,7 +4,7 @@
 
 Plataforma cívica independente e colaborativa para consultar dados públicos dos municípios de Rondônia. Voltada a cidadãos, jornalistas e pesquisa sobre a gestão municipal, com fontes oficiais, datas e limites de cobertura.
 
-**Estado atual: piloto em desenvolvimento.** O mapa permite escolher os 52 municípios de Rondônia. Contratos de Porto Velho possui consulta direta à API oficial, com filtro de ano, paginação e JSON normalizado em `/porto-velho/contratos`. A implementação local não comprova publicação em produção. Obras e Receitas de Porto Velho também possuem consulta oficial, com listagens e filtros adaptados do Observatório PVH. Outros municípios permanecem em preparação.
+**Estado atual: piloto em desenvolvimento.** O mapa permite escolher os 52 municípios de Rondônia. Contratos de Porto Velho possui consulta direta à API oficial, com filtro de ano, paginação e JSON normalizado em `/porto-velho/contratos`. A publicação em produção foi verificada em 19/10/2026. Obras e Receitas de Porto Velho também possuem consulta oficial, com listagens e filtros adaptados do Observatório PVH. Outros municípios permanecem em preparação.
 
 ## Rodar com Docker
 
@@ -45,7 +45,7 @@ npm run format:check
 | `tests/`              | Regras do cadastro e isolamento dos dados                      |
 | `docs/`               | Arquitetura, identidade e próximos passos                      |
 
-O endereço proposto é `rondonia.dadosabertos.org`, com caminhos como `/porto-velho` e `/ji-parana`. A infraestrutura de produção está preparada para VPS Hostinger com Docker, Redis privado, Cloudflare Tunnel e GitHub Actions. A instalação e a publicação inicial ainda estão pendentes; veja [produção](docs/producao.md).
+O site está em [rondonia.dadosabertos.org](https://rondonia.dadosabertos.org), com caminhos como `/porto-velho` e `/ji-parana`. A produção usa VPS Hostinger com Docker, Redis privado, Cloudflare Tunnel e GitHub Actions. Releases estáveis e acionamento manual publicam a aplicação; pushes comuns executam o CI. Veja [produção, segredos e limites](docs/producao.md).
 
 ## Consulta de dados
 

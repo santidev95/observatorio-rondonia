@@ -1,6 +1,6 @@
 # Produção na VPS
 
-Infraestrutura preparada para `rondonia.dadosabertos.org`: VPS Hostinger, Docker Compose, Redis privado e Cloudflare Tunnel. A instalação na VPS e a publicação inicial ainda dependem de liberar o acesso administrativo; arquivos e workflow, por si só, não comprovam publicação.
+Infraestrutura instalada em [rondonia.dadosabertos.org](https://rondonia.dadosabertos.org): VPS Hostinger, Docker Compose, Redis privado e Cloudflare Tunnel. A primeira publicação foi verificada em 19/10/2026, com HTTPS, redirecionamento HTTP, saúde da aplicação e consultas dos três módulos de Porto Velho. Consulte o Actions e `/api/health` para a revisão em execução.
 
 ## Fluxo
 
@@ -68,7 +68,7 @@ O usuário `observatorio-deploy` não pertence aos grupos Docker ou sudo. Sua ch
 
 O deploy usa o digest imutável e confere a revisão do processo. Se a saúde local falhar, restaura a última imagem saudável; no primeiro deploy, sem imagem anterior, interrompe a aplicação. O arquivo `current-image` só muda após sucesso. O Compose pode causar uma interrupção breve ao recriar a aplicação; não há promessa de deploy sem indisponibilidade.
 
-A verificação HTTPS pública confirma a mesma revisão. Se falhar por DNS, Tunnel ou rede, o job falha para permitir diagnóstico, sem desfazer uma aplicação local saudável. O rollback automático é da imagem da aplicação: não altera Redis, DNS, configuração do Tunnel ou dados. Para voltar deliberadamente a um release antigo, execute o workflow manual com a tag anterior que contenha o endpoint de saúde e os rótulos de imagem. A release `v0.2.0` anterior a esta infraestrutura não possui esses requisitos.
+A verificação HTTPS pública parte do container na VPS, atravessa a Cloudflare e confirma a mesma revisão. A zona já possui uma regra permitindo somente Brasil e Estados Unidos; o instalador não a altera. A origem geográfica dos runners do GitHub pode variar e ser bloqueada. A verificação a partir da VPS preserva essa proteção, sem confundir a chamada pública com a verificação HTTP local. Se falhar por DNS, Tunnel ou rede, o job falha para permitir diagnóstico, sem desfazer uma aplicação local saudável. O rollback automático é da imagem da aplicação: não altera Redis, DNS, configuração do Tunnel ou dados. Para voltar deliberadamente a um release antigo, execute o workflow manual com a tag anterior que contenha o endpoint de saúde e os rótulos de imagem. A release `v0.2.0` anterior a esta infraestrutura não possui esses requisitos.
 
 ## Verificação e operação
 
@@ -77,6 +77,12 @@ A verificação HTTPS pública confirma a mesma revisão. Se falhar por DNS, Tun
 - Em `runtime.env` ficam `REDIS_PASSWORD` e `CLOUDFLARED_IMAGE`; o token fica no arquivo de secret. Mantenha `runtime.env` com modo `600` e diretório root `700`. Acesso root/Docker no host permite ler credenciais; esse controle não protege contra administrador comprometido.
 - Testes e build usam fixtures e não coletam dados reais. Após a publicação, uma consulta real e sua repetição devem confirmar normalização, horário da fonte e cache `hit`, sem confundir cache com histórico.
 - Não feche as portas dos Redis/PostgreSQL de outros projetos sem revisar seus consumidores. Este Compose privado não modifica exposições preexistentes da VPS.
-- Não há agendamento de coleta, banco PostgreSQL, monitor externo nem backups históricos neste projeto.
+- Não há atualização em segundo plano, agendamento de coleta, banco PostgreSQL, monitor externo nem backups históricos neste projeto. A primeira carga de Receitas 2026 levou cerca de 70 segundos dentro da VPS; depois disso, o JSON público respondeu com cache `hit`. Requisições HTTP longas ainda podem falhar antes de a carga terminar.
+
+## Próxima etapa: atualizar Receitas em segundo plano
+
+Um worker separado deve atualizar o exercício corrente a cada hora, com carga inicial ao iniciar e lock Redis por município/exercício para impedir atualizações concorrentes. Ele deve reutilizar o conector, o controle de ritmo e a validação de cobertura completa. O site deve servir a última versão válida, sinalizando quando passou de uma hora; a atualização pode ser solicitada sem bloquear a navegação. Na primeira carga, sem versão válida, a interface deve informar que a atualização está em andamento.
+
+Esse fluxo exige separar prazo de atualização e prazo de retenção: hoje a chave expira após uma hora e não sobra cópia para servir durante uma falha. A retenção da última versão por um prazo maior deve ser explícita, com data e estado de atualização visíveis, sem apresentá-la como atual nem chamá-la de histórico. Exercícios antigos precisam de política própria para evitar recarregar todos a cada hora. Worker e mudanças na expiração ainda não estão implementados.
 
 Referências: [imagens Docker no Actions](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images), [saúde e ordem no Compose](https://docs.docker.com/compose/how-tos/startup-order/), [token de Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/configure-tunnels/remote-tunnel-permissions/).
