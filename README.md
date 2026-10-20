@@ -16,7 +16,7 @@ Abra [http://localhost:3000](http://localhost:3000). O Compose inclui um Redis l
 
 ## Executar localmente com Node.js
 
-Node.js 22 ou superior e npm. O cache usa Redis em Docker na VPS: copie `.env.example` para `.env.local` e configure `REDIS_URL` e `REDIS_PASSWORD` somente no servidor. Sem essas variáveis, a consulta funciona diretamente pela API, sem cache. Não é necessário PostgreSQL. Para Receitas, configure Redis e execute o worker em outro terminal; o site lê a última carga válida e não espera uma coleta durante a requisição.
+Use Node.js 22, conforme `.node-version`, para reproduzir o CI e o Docker de produção. O cache usa Redis em Docker na VPS: copie `.env.example` para `.env.local` e configure `REDIS_URL` e `REDIS_PASSWORD` somente no servidor. Sem essas variáveis, Obras e Contratos consultam a API diretamente. Não é necessário PostgreSQL. Para Receitas, configure Redis e execute o worker em outro terminal; o site lê a última carga válida e não espera uma coleta durante a requisição.
 
 ```sh
 npm ci
@@ -47,7 +47,7 @@ npm run format:check
 | `tests/`              | Regras do cadastro e isolamento dos dados                      |
 | `docs/`               | Arquitetura, identidade e próximos passos                      |
 
-O site está em [rondonia.dadosabertos.org](https://rondonia.dadosabertos.org), com caminhos como `/porto-velho` e `/ji-parana`. A produção usa VPS Hostinger com Docker, Redis privado, Cloudflare Tunnel e GitHub Actions. Releases estáveis e acionamento manual publicam a aplicação; pushes comuns executam o CI. Veja [produção, segredos e limites](docs/producao.md).
+O site está em [rondonia.dadosabertos.org](https://rondonia.dadosabertos.org), com caminhos como `/porto-velho` e `/ji-parana`. A produção usa VPS Hostinger com Docker, Redis privado, Cloudflare Tunnel e GitHub Actions. PRs validam sem publicar; a master constrói e testa uma imagem, publica no GHCR e guarda seu digest. Releases estáveis e acionamento manual implantam essa imagem aprovada, sem reconstrução. Veja [produção, segredos e limites](docs/producao.md).
 
 ## Consulta de dados
 

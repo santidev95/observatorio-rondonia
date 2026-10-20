@@ -6,7 +6,7 @@
 - Contratos de Porto Velho com consulta direta à API pública, paginação de 25 registros, filtro de ano e JSON normalizado.
 - Validação de metadados, valores, ausentes, documentos e minimização de CPF.
 - Timeout e mensagens explícitas quando a fonte está indisponível.
-- Guia de contribuição, templates e CI sem publicação.
+- Guia de contribuição, templates e validação de PRs sem publicação. O CI da master guarda uma imagem aprovada para futuras releases.
 
 Obras, Contratos e Receitas de Porto Velho foram publicados e verificados em produção em 19/10/2026; a disponibilidade das fontes continua sujeita à API municipal. Outros municípios permanecem em preparação.
 

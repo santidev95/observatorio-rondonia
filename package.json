@@ -1,6 +1,6 @@
 {
   "name": "observatorio-rondonia",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -12,7 +12,7 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "tsx --test tests/*.test.ts tests/*.test.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "map:build": "node scripts/build-municipal-map.mjs",

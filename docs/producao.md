@@ -6,9 +6,11 @@ Infraestrutura instalada em [rondonia.dadosabertos.org](https://rondonia.dadosab
 
 ```mermaid
 flowchart LR
-  A[Release publicada ou execução manual] --> B[Testes e build Docker no Actions]
-  B --> C[Imagem no GHCR por digest]
-  C --> D[SSH restrito atualiza a aplicação]
+  A[PR com CI aprovado] --> B[Merge na master protegida]
+  B --> C[Testes e uma imagem validada no GHCR]
+  C --> M[Manifesto do CI com commit e digest]
+  M --> R[Release ou execução manual seleciona a imagem]
+  R --> D[SSH restrito atualiza a aplicação]
   D --> E[Saúde local e conferência pública]
   F[Navegador HTTPS] --> G[Cloudflare Tunnel]
   G --> H[Next.js na VPS]
@@ -64,7 +66,19 @@ O usuário `observatorio-deploy` não pertence aos grupos Docker ou sudo. Sua ch
 
 ## Releases, atualização e rollback
 
-`.github/workflows/deploy.yml` executa em release estável publicada ou por acionamento manual, com tag/commit já presente em `master`. Push comum continua executando somente o CI. O workflow valida formato, testes, TypeScript, limites do comando SSH, constrói a imagem e testa `/api/health` no container Linux antes de publicar no GHCR.
+`.github/workflows/ci.yml` chama `validate-build.yml`, com Node.js 22 definido em `.node-version`, alinhado ao Docker. O workflow compartilhado valida formatação, testes com Redis isolado, TypeScript e limites do SSH. Constrói uma imagem Docker, já incluindo os builds Next.js e worker, e testa a aplicação e o worker sem acesso à Prefeitura. Não há outro build Next.js fora dessa imagem no CI.
+
+PRs têm somente leitura e não publicam imagens ou manifestos. Push e execução manual do CI na master podem publicar a imagem testada no GHCR. O artefato `deployment-image` contém somente `deployment-image.json`: repositório, revisão, imagem, digest, ID e tentativa do CI. O check final `CI aprovado` falha se a validação falhar, for cancelada ou não executar. Push não faz deploy.
+
+`.github/workflows/deploy.yml` executa em release estável publicada ou por acionamento manual. Resolve a tag/commit e confere sua ancestralidade na master. Procura um CI deste repositório, na master, com o mesmo commit e conclusão de sucesso; aguarda se a release foi criada enquanto o CI ainda executava. Baixa somente o artefato selecionado e confere sua identidade e o digest. Não instala dependências, executa testes novamente nem reconstrói a imagem. O job de seleção só recebe leitura de código e artefatos; a chave SSH pertence exclusivamente ao job de deploy no environment `production`.
+
+O manifesto é retido por 90 dias. Se estiver ausente, expirado ou inválido, ou se o CI não tiver sucesso, o deploy falha sem alterar a VPS. Tags anteriores a este fluxo não possuem manifesto; não há fallback automático para reconstruir imagens antigas. O rollback local descrito abaixo continua usando a imagem anterior já presente na VPS. Uma reconstrução intencional exige executar o CI, gerando outro manifesto; não é parte do deploy.
+
+### Proteções do repositório
+
+Os arquivos `.github/rulesets/master.json` e `release-tags.json` documentam as regras aplicadas administrativamente no GitHub. A master exige PR, conversas resolvidas e o check `CI aprovado` emitido pelo GitHub Actions, atualizado com a base; force push e exclusão são bloqueados. Não há bypass configurado. A revisão por outra pessoa não é obrigatória, para permitir o fluxo do mantenedor único; isso não dispensa PR ou CI.
+
+Tags `v*` podem ser criadas, mas não alteradas ou excluídas. Publique outra versão para corrigir uma release. Alterar esses JSONs em um PR não muda as regras remotas automaticamente: a aplicação exige acesso administrativo e conferência das regras existentes.
 
 O deploy usa o digest imutável e confere a revisão do processo. Se a saúde local falhar, restaura a última imagem saudável; no primeiro deploy, sem imagem anterior, interrompe a aplicação. O arquivo `current-image` só muda após sucesso. O deploy atualiza a aplicação e o worker com a mesma imagem. O worker tem verificação de heartbeat e encerra a coleta ao receber SIGTERM; nenhuma carga incompleta é publicada. O Compose pode causar uma interrupção breve ao recriar a aplicação; não há promessa de deploy sem indisponibilidade.
 
