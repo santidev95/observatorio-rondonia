@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.1] — 2026-10-20
+
+### Pipeline e releases
+
+- Validação e construção reunidas em um workflow reutilizável. PRs executam testes sem permissão de publicação nem segredos de produção.
+- O CI da master constrói e testa uma imagem Docker, publica no GHCR e registra seu digest em um manifesto. A release e o deploy manual reutilizam essa imagem, sem novos builds.
+- O deploy confere repositório, commit, origem e conclusão do CI, identidade do artefato e digest. Artefatos de PR, forks, outras branches e manifestos inválidos não são aceitos.
+- Node.js 22 definido em `.node-version` e usado nos workflows, alinhado aos estágios do Dockerfile.
+- Regras versionadas para exigir PR e o check `CI aprovado` na master, impedir force push/exclusão e impedir alteração/exclusão das tags `v*`.
+- Testes do resolvedor cobrem origem não confiável, manifesto adulterado ou expirado, falhas da API e espera pelo CI. Testes de saúde da aplicação e do worker usam redes Docker sem acesso à Prefeitura.
+
+### Operação
+
+- Segredos, acesso SSH restrito, Cloudflare Tunnel e rollback local permanecem no fluxo existente.
+- Manifestos são guardados por 90 dias. Sem manifesto válido, o deploy falha explicitamente; não reconstrói uma imagem como fallback. Tags anteriores a este fluxo continuam publicadas, mas não possuem o novo manifesto.
+
+**Changelog completo:** [v0.3.0...v0.3.1](https://github.com/santidev95/observatorio-rondonia/compare/v0.3.0...v0.3.1)
+
 ## [0.3.0] — 2026-10-19
 
 ### Novidades
@@ -87,6 +105,7 @@
 
 **Changelog completo:** [v0.1.0...v0.2.0](https://github.com/santidev95/observatorio-rondonia/compare/v0.1.0...v0.2.0)
 
+[0.3.1]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.3.1
 [0.3.0]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.3.0
 [0.2.1]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.2.1
 [0.2.0]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.2.0

@@ -1,0 +1,81 @@
+name: Validação e imagem compartilhadas
+
+on:
+  workflow_call:
+    inputs:
+      publish:
+        description: Publicar imagem e manifesto somente na master confiável
+        required: true
+        type: boolean
+
+# Permissões são herdadas do caller: PR somente lê; master pode publicar no GHCR.
+jobs:
+  validate-build:
+    name: Testes e imagem
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TEST_REDIS_URL: redis://127.0.0.1:6379
+      TEST_REDIS_PASSWORD: fixture-ci-redis
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Conferir contexto de publicação
+        if: inputs.publish
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+        run: |
+          [[ "$REF" == refs/heads/master ]]
+          [[ "$EVENT" == push || "$EVENT" == workflow_dispatch ]]
+          [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
+      - run: npm ci
+      - run: npm run format:check
+      - name: Preparar Redis local isolado para testes
+        run: |
+          docker run -d --name redis-test -p 127.0.0.1:6379:6379 --env REDIS_PASSWORD=fixture-ci-redis redis:8-alpine sh -c 'exec redis-server --save "" --appendonly no --requirepass "$REDIS_PASSWORD"'
+          for attempt in $(seq 1 30); do
+            if docker exec redis-test sh -c 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli ping' | grep -q PONG; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - run: npm test
+      - run: npm run typecheck
+      - name: Validar scripts de operação
+        run: |
+          bash -n deploy/*.sh scripts/smoke-*.sh
+          bash tests/deploy-validation.sh
+      - name: Construir uma imagem e testar aplicação e worker
+        run: |
+          set -euo pipefail
+          image="ghcr.io/santidev95/observatorio-rondonia:sha-$GITHUB_SHA"
+          docker build --build-arg "APP_REVISION=$GITHUB_SHA" --tag "$image" .
+          bash scripts/smoke-app.sh "$image" "$GITHUB_SHA"
+          bash scripts/smoke-worker.sh "$image"
+      - name: Publicar a imagem validada e registrar digest
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/santidev95/observatorio-rondonia:sha-$GITHUB_SHA"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null' EXIT
+          docker push "$image"
+          digest=$(docker buildx imagetools inspect "$image" --format '{{.Manifest.Digest}}')
+          IMAGE_DIGEST="$digest" node scripts/ci/image-manifest.mjs create
+          printf 'Imagem validada: %s@%s\n' 'ghcr.io/santidev95/observatorio-rondonia' "$digest" >> "$GITHUB_STEP_SUMMARY"
+      - name: Guardar manifesto da imagem deste CI
+        if: inputs.publish
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: deployment-image
+          path: deployment-image.json
+          if-no-files-found: error
+          retention-days: 90
+          overwrite: true

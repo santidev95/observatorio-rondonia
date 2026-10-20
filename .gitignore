@@ -16,3 +16,5 @@ secrets/
 *.key
 
 dist/
+deployment-image.json
+verified-image/

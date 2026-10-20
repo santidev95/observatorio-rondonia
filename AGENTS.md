@@ -14,9 +14,9 @@
 - Planeje chaves isoladas por UF, município, módulo e versão. Publique uma revisão somente após coleta completa e validação; uma falha preserva a última válida.
 - Segredos pertencem ao servidor e ao coletor, nunca a `NEXT_PUBLIC_`, ao navegador ou aos logs. Não copie arquivos `.env` de outros projetos.
 - Testes usam fixtures sintéticas. Coletas reais, commits, pushes, DNS e deploy precisam integrar o pedido autorizado.
-- Comandos: `npm ci`, `npm run dev`, `npm test`, `npm run typecheck`, `npm run build`, `npm run format:check`.
+- Use Node.js 22 conforme `.node-version`, alinhado ao Docker. Comandos: `npm ci`, `npm run dev`, `npm test`, `npm run typecheck`, `npm run build`, `npm run format:check`.
 - Mudanças de código: typecheck e testes pertinentes; rotas/build: build; mudanças visuais: desktop, celular, navegação e acessibilidade.
-- Informe validação local, CI remoto e publicação separadamente. O workflow de produção em `.github/workflows/deploy.yml` usa GHCR, SSH restrito e Cloudflare Tunnel; veja `docs/producao.md`. O ambiente está instalado; verifique o Actions e `/api/health` antes de afirmar qual revisão está em produção.
+- Informe validação local, CI remoto e publicação separadamente. O CI chama `validate-build.yml`; PRs somente validam, e a master publica a imagem testada e seu manifesto. O deploy em `.github/workflows/deploy.yml` aceita apenas o digest de um CI aprovado da master para o mesmo commit, sem build, mantendo SSH restrito e Cloudflare Tunnel. Veja `docs/producao.md`. A master exige PR e `CI aprovado`; tags `v*` não devem ser movidas ou apagadas. O ambiente está instalado; verifique o Actions e `/api/health` antes de afirmar qual revisão está em produção.
 - Antes de escrever código Next.js, leia a documentação correspondente em `node_modules/next/dist/docs/`. Esta versão pode diferir de exemplos antigos.
 
 <!-- BEGIN:nextjs-agent-rules -->
