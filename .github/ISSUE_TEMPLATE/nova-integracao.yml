@@ -1,0 +1,30 @@
+name: Nova integração municipal
+description: Propor fontes e cobertura para um município de Rondônia.
+title: "[Integração] "
+body:
+  - type: input
+    id: municipio
+    attributes:
+      label: Município
+      placeholder: Nome do município de Rondônia
+    validations:
+      required: true
+  - type: textarea
+    id: fontes
+    attributes:
+      label: Fontes oficiais
+      description: Informe links públicos, documentação e módulos disponíveis. Não inclua tokens.
+    validations:
+      required: true
+  - type: textarea
+    id: cobertura
+    attributes:
+      label: Cobertura e limitações
+      description: Períodos, campos ausentes, paginação e autenticação conhecida.
+    validations:
+      required: true
+  - type: textarea
+    id: contribuicao
+    attributes:
+      label: Como pretende contribuir
+      description: Levantamento de fontes, documentação, código ou testes.

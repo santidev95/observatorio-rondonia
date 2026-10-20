@@ -1,0 +1,17 @@
+name: Problema ou divergência
+description: Relatar um comportamento ou uma limitação de dados com evidência.
+title: "[Problema] "
+body:
+  - type: input
+    id: pagina
+    attributes:
+      label: Página ou módulo
+    validations:
+      required: true
+  - type: textarea
+    id: comportamento
+    attributes:
+      label: O que acontece
+      description: Passos para reproduzir, resultado esperado e fonte verificável. Não publique dados pessoais ou credenciais.
+    validations:
+      required: true

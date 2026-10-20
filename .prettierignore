@@ -1,0 +1,7 @@
+node_modules/
+.next/
+package-lock.json
+next-env.d.ts
+public/images/
+public/maps/
+src/geography/rondonia-map.json
