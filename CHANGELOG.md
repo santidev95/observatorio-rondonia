@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.2.1] — 2026-10-19
+
+### Novidades
+
+- **Receitas em segundo plano:** worker Docker separado, com renovação horária do exercício corrente e carga dos demais exercícios sob demanda, renovável após um dia. Páginas e downloads leem o Redis sem coletar a Prefeitura durante a requisição.
+- **Continuidade dos dados:** última carga completa e validada retida por até sete dias, preservando o horário original da fonte. Falhas mantêm essa versão dentro do prazo e permitem nova tentativa após cinco minutos.
+- **Estado de atualização na interface:** primeira carga pendente, atualização em andamento e falhas são informadas sem totais fictícios. A tela verifica novas versões e preserva os filtros, com ajustes na primeira carga em celular.
+- **Produção na VPS:** deploy pelo GitHub Actions, imagem Docker no GHCR por digest, SSH com comando restrito, Redis privado e acesso HTTPS pelo Cloudflare Tunnel. Obras, Contratos e Receitas de Porto Velho passam a constar como consultas disponíveis; outros municípios permanecem em preparação.
+
+### Integridade e operação
+
+- Lease por exercício, renovação do lock e publicação atômica com conferência do token impedem que uma execução antiga substitua outra carga. Site e worker compartilham o limite de consultas à API municipal.
+- Receitas inclui metadados de atualização e endpoint `/api/porto-velho/receitas/status`. O JSON retorna HTTP 202 com `data: null` durante a primeira carga e HTTP 503 quando indisponível; versões válidas retornam HTTP 200 com cache `hit` ou `stale`.
+- Compose local inclui o worker na mesma imagem da aplicação. Em produção, aplicação e worker têm verificações de saúde e rollback compatível com a imagem anterior.
+- A verificação pública do deploy parte da VPS, atravessa a Cloudflare e confirma o commit em `/api/health`, preservando as regras existentes de acesso por país.
+- CI valida a integração com Redis isolado, testes de domínio, TypeScript, formatação, scripts de deploy, build e saúde da imagem. O teste do worker usa uma rede Docker sem acesso à Prefeitura.
+- Documentação de produção, credenciais, cache, atualização e recuperação do worker adicionada.
+
+### Limites
+
+- Redis continua sendo armazenamento temporário: pressão de memória pode remover entradas antes dos sete dias. Arquivo durável, histórico e backup dos dados públicos não estão implementados.
+- Sem uma versão válida, Receitas depende do Redis e do worker para concluir a carga. Contratos e Obras mantêm cache por uma hora e fallback à API.
+- Publicar uma release estável aciona o workflow de produção; a disponibilidade da revisão deve ser conferida no Actions e em `/api/health`.
+
+**Changelog completo:** [v0.2.0...v0.2.1](https://github.com/santidev95/observatorio-rondonia/compare/v0.2.0...v0.2.1)
+
 ## [0.2.0] — 2026-10-19
 
 ## Novidades
@@ -32,4 +58,5 @@
 
 **Changelog completo:** [v0.1.0...v0.2.0](https://github.com/santidev95/observatorio-rondonia/compare/v0.1.0...v0.2.0)
 
+[0.2.1]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.2.1
 [0.2.0]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.2.0
