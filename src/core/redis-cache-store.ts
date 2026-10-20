@@ -1,6 +1,11 @@
 import { createClient } from "redis";
 import type { ContractsCacheStore } from "./contracts-cache";
 
+export type RedisScriptStore = ContractsCacheStore & {
+  eval(script: string, keys: string[], args: string[]): Promise<unknown>;
+  close(): void;
+};
+
 type Config = { url: string; password: string; timeoutMs?: number };
 
 function configuredClient(config: Config) {
@@ -17,9 +22,7 @@ function configuredClient(config: Config) {
 type Client = ReturnType<typeof configuredClient>;
 
 /** Cliente TCP compartilhado; não mantém respostas ou fila offline em memória. */
-export function createRedisCacheStore(
-  config: Config,
-): ContractsCacheStore & { close(): void } {
+export function createRedisCacheStore(config: Config): RedisScriptStore {
   const timeoutMs = config.timeoutMs ?? 1500;
   let client: Client | undefined;
   let connecting: Promise<Client> | undefined;
@@ -86,6 +89,11 @@ export function createRedisCacheStore(
   }
 
   return {
+    async eval(script, keys, args) {
+      return execute((current) =>
+        current.eval(script, { keys, arguments: args }),
+      );
+    },
     async get(key) {
       const value = await execute((current) => current.get(key));
       if (value === null) return null;

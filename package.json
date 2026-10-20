@@ -15,7 +15,9 @@
     "test": "tsx --test tests/*.test.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "map:build": "node scripts/build-municipal-map.mjs"
+    "map:build": "node scripts/build-municipal-map.mjs",
+    "build:worker": "node scripts/build-worker.mjs",
+    "worker:receitas": "node --env-file=.env.local --import tsx scripts/revenues-worker.ts"
   },
   "dependencies": {
     "next": "16.4.0",
@@ -31,6 +33,7 @@
     "@types/react-dom": "19.3.0",
     "prettier": "3.9.10",
     "tsx": "4.23.15",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "esbuild": "0.28.2"
   }
 }

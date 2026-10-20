@@ -35,7 +35,7 @@ compose() {
 }
 previous=$(cat current-image 2>/dev/null || true)
 export APP_IMAGE="$image"
-if compose up -d --wait --wait-timeout 120 redis app; then
+if compose up -d --wait --wait-timeout 120 redis revenues-worker app; then
   container=$(compose ps -q app)
   if docker exec "$container" node -e 'fetch("http://127.0.0.1:3000/api/health",{signal:AbortSignal.timeout(5000)}).then(async r=>{const h=await r.json();if(!r.ok||h.status!=="ok"||h.revision!==process.argv[1])process.exit(1)}).catch(()=>process.exit(1))' "$revision"; then
     printf '%s\n' "$image" >current-image.next
@@ -60,14 +60,21 @@ fi
 printf '%s\n' 'Verificação local falhou.' >&2
 if [[ $previous =~ ^ghcr.io/santidev95/observatorio-rondonia@sha256:[a-f0-9]{64}$ ]]; then
   export APP_IMAGE="$previous"
-  if compose up -d --no-deps --wait --wait-timeout 120 app; then
+  previous_worker=$(docker image inspect --format '{{index .Config.Labels "org.observatorio.worker.receitas"}}' "$previous")
+  rollback_services=(app)
+  if [[ $previous_worker == 1 ]]; then
+    rollback_services+=(revenues-worker)
+  else
+    compose stop revenues-worker
+  fi
+  if compose up -d --no-deps --wait --wait-timeout 120 "${rollback_services[@]}"; then
     printf '%s\n' 'Imagem anterior restaurada.' >&2
   else
     printf '%s\n' 'Rollback falhou; intervenção na VPS necessária.' >&2
   fi
 else
   # Primeiro deploy não possui versão anterior. Não deixe imagem defeituosa servindo.
-  compose stop app
+  compose stop app revenues-worker
   printf '%s\n' 'Primeiro deploy interrompido; nenhuma imagem anterior disponível.' >&2
 fi
 exit 1

@@ -1,4 +1,5 @@
-import { getRevenues } from "@/lib/municipal-data";
+import { revenueHttpResponse } from "@/core/revenue-http";
+import { getRevenues } from "@/lib/revenues";
 import { parseRevenueQuery, MunicipalQueryError } from "@/core/municipal-query";
 export const runtime = "nodejs";
 const headers = { "Cache-Control": "no-store" };
@@ -28,10 +29,12 @@ export async function GET(
       throw new MunicipalQueryError();
     const { year } = parseRevenueQuery(input);
     const result = await getRevenues(year);
-    return Response.json(
-      { municipality: "porto-velho", module: "receitas", ...result },
-      { headers: { ...headers, "X-Observatorio-Cache": result.cache.status } },
-    );
+    const response = revenueHttpResponse(result);
+    const body = { municipality: "porto-velho", module: "receitas", ...result };
+    return Response.json(body, {
+      status: response.status,
+      headers: response.headers,
+    });
   } catch (e) {
     return Response.json(
       {

@@ -1,16 +1,34 @@
 services:
   app:
-    build:
+    image: observatorio-rondonia-local
+    build: &app-build
       context: .
       dockerfile: Dockerfile
     ports:
       - "127.0.0.1:${LOCAL_PORT:-3000}:3000"
-    environment:
+    environment: &cache-env
       REDIS_URL: redis://redis:6379
       REDIS_PASSWORD: ${LOCAL_REDIS_PASSWORD:-observatorio-local-dev}
     depends_on:
       redis:
         condition: service_healthy
+    restart: unless-stopped
+
+  revenues-worker:
+    image: observatorio-rondonia-local
+    build: *app-build
+    command: [node, revenues-worker.cjs]
+    environment: *cache-env
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, node, revenues-worker.cjs, --healthcheck]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 20s
+    stop_grace_period: 30s
     restart: unless-stopped
 
   redis:
@@ -25,8 +43,10 @@ services:
       - redis_data:/data
     healthcheck:
       test:
-        - CMD-SHELL
-        - 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG'
+        [
+          CMD-SHELL,
+          'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG',
+        ]
       interval: 5s
       timeout: 3s
       retries: 10

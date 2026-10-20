@@ -50,3 +50,7 @@ Os testes de transporte usam uma fixture RESP local com senha sintética; não a
 - [Segurança e isolamento de rede](https://redis.io/docs/latest/operate/oss_and_stack/management/security/).
 
 No Windows do mantenedor, prefixe comandos com `rtk proxy`.
+
+## Receitas: retenção e worker
+
+Receitas usa o namespace `observatorio:RO:porto-velho:receitas:v2`, com fila, lease, tentativa e última versão válida por exercício. A renovação é horária para o exercício corrente; outros exercícios são renovados sob demanda após um dia. A versão válida é retida por até sete dias. Erros não renovam esse prazo nem substituem a versão. Leitura indisponível resulta em estado público explícito, sem coleta síncrona. Veja [detalhes do worker](receitas-background.md). Contratos e Obras mantêm seu cache de uma hora e fallback à fonte.

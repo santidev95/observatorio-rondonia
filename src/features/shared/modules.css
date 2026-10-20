@@ -1047,3 +1047,21 @@
     flex: 1 1 100%;
   }
 }
+
+.revenue-update {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-block: 1.5rem;
+}
+.revenue-update p {
+  margin: 0;
+}
+.revenue-update p + p {
+  margin-top: 0.5rem;
+}
+.revenue-update .button {
+  flex-shrink: 0;
+}

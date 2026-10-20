@@ -3,7 +3,7 @@ name: observatorio-rondonia
 services:
   app:
     image: ${APP_IMAGE:?Informe a imagem pelo digest}
-    environment:
+    environment: &cache-env
       REDIS_URL: redis://redis:6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Configure a senha privada na VPS}
     networks: [web, cache]
@@ -34,6 +34,31 @@ services:
       options:
         max-size: 10m
         max-file: "3"
+    restart: unless-stopped
+
+  revenues-worker:
+    image: ${APP_IMAGE:?Informe a imagem pelo digest}
+    command: [node, revenues-worker.cjs]
+    environment: *cache-env
+    networks: [web, cache]
+    depends_on:
+      redis:
+        condition: service_healthy
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 768m
+    cpus: 1
+    healthcheck:
+      test: [CMD, node, revenues-worker.cjs, --healthcheck]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 20s
+    stop_grace_period: 30s
+    logging: *logging
     restart: unless-stopped
 
   redis:

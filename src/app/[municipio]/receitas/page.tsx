@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { RevenueDashboard } from "@/features/revenues/Dashboard";
-import { getRevenues } from "@/lib/municipal-data";
+import { getRevenues } from "@/lib/revenues";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Geist } from "next/font/google";
 import { ModuleNavigation } from "@/features/shared/ModuleNavigation";
-import { CacheNotice } from "@/features/contracts/CacheNotice";
+import { RevenueRefreshStatus } from "@/features/revenues/RefreshStatus";
 import { parseRevenueQuery } from "@/core/municipal-query";
 import "@/features/shared/modules.css";
 const geist = Geist({ subsets: ["latin"], display: "swap" });
@@ -53,8 +53,9 @@ export default async function RevenuePage({
   const raw = await searchParams;
   let result: Awaited<ReturnType<typeof getRevenues>> | undefined;
   let problem = "";
+  let year = new Date().getFullYear();
   try {
-    const { year } = parseRevenueQuery(raw);
+    year = parseRevenueQuery(raw).year;
     result = await getRevenues(year);
   } catch {
     problem =
@@ -78,17 +79,52 @@ export default async function RevenuePage({
         Explore as contas, os meses e as unidades gestoras, com acesso ao
         planejamento oficial.
       </p>
+      {result && (
+        <RevenueRefreshStatus
+          year={year}
+          initial={{
+            state: result.state,
+            fetchedAt: result.fetchedAt,
+            cache: result.cache,
+            refresh: result.refresh,
+          }}
+        />
+      )}
+      {!view && result && (
+        <form
+          action="/porto-velho/receitas"
+          className="search-panel revenue-filters"
+        >
+          <label>
+            Exercício
+            <input
+              type="number"
+              name="ano"
+              min={2000}
+              max={2100}
+              defaultValue={year}
+              required
+            />
+          </label>
+          <button type="submit" className="button button-secondary">
+            Consultar exercício
+          </button>
+          <a href="https://transparencia.portovelho.ro.gov.br/receitas">
+            Consultar fonte oficial ↗
+          </a>
+        </form>
+      )}
       {view ? (
         <RevenueDashboard view={view} />
-      ) : (
+      ) : problem ? (
         <div className="notice" role="status">
           {problem}{" "}
           <a href="https://transparencia.portovelho.ro.gov.br/receitas">
             Consultar fonte oficial ↗
           </a>
         </div>
-      )}
-      {result && (
+      ) : null}
+      {result?.data && (
         <details className="catalog-provenance">
           <summary>Fonte e detalhes da consulta</summary>
           <p>
@@ -96,7 +132,12 @@ export default async function RevenuePage({
             todas as páginas de documentos e previsões. A API pode mudar durante
             a leitura; não oferece revisão transacional.
           </p>
-          <CacheNotice cache={result.cache} />
+          <p>
+            Atualização em segundo plano. Exercício corrente: renovação a cada
+            hora. Outros exercícios: renovação após um dia, quando consultados.
+            A última versão válida é retida por até sete dias, com aviso após o
+            prazo de renovação.
+          </p>
         </details>
       )}
       <section

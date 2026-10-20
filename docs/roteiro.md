@@ -30,4 +30,4 @@ Ampliar Obras e Receitas para outros municípios depois de verificar suas fontes
 
 ## 5. Publicação
 
-Produção instalada na VPS Hostinger, com Redis privado, Cloudflare Tunnel, domínio e deploy pelo Actions. Veja [operação e segredos](producao.md). Próxima etapa operacional: worker de Receitas, renovação a cada hora e última versão válida durante falhas, com data e estado de atualização visíveis. Essa atualização em segundo plano ainda precisa ser implementada.
+Produção instalada na VPS Hostinger, com Redis privado, Cloudflare Tunnel, domínio e deploy pelo Actions. Veja [operação e segredos](producao.md). Worker de Receitas implementado com agendamento horário, lease e última carga válida com data e estado visíveis. Veja [operação de Receitas](receitas-background.md). A implantação desta revisão deve ser conferida no Actions e na saúde do worker.

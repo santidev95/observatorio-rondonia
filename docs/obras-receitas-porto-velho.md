@@ -45,3 +45,7 @@ JSON e HTML usam o mesmo leitor/cache. Metadados incluem consulta e expiração;
 ## Verificação
 
 Fixtures sintéticas cobrem dinheiro com sinal, ausência/zero, filtros e ordenação, separação previsão/arrecadação, IDs, portal, competência, cobertura e cache isolado. Verificações locais não comprovam CI remoto, deploy, disponibilidade contínua ou atualização completa da origem.
+
+## Atualização de Receitas em segundo plano
+
+O fluxo de Receitas foi separado da requisição web. O worker reutiliza os conectores e as validações descritas acima; a página lê a última carga completa no Redis. A política atual é renovação horária do exercício corrente, consulta de outros exercícios sob demanda após um dia e retenção de até sete dias, sempre com horários e estado visíveis. O namespace v2 substitui o cache síncrono v1; [operação e estados](receitas-background.md).

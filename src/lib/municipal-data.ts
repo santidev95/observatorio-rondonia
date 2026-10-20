@@ -1,14 +1,10 @@
 import "server-only";
 import { connection } from "next/server";
 import { worksCatalogSchema } from "../core/works";
-import {
-  createCachedWorksReader,
-  createCachedRevenuesReader,
-} from "../core/municipal-cache";
+import { createCachedWorksReader } from "../core/municipal-cache";
 import { readSource } from "../core/contracts-reader";
 import { getContractsCache } from "./redis";
 import { fetchWorks } from "../connectors/porto-velho/works";
-import { fetchRevenues } from "../connectors/porto-velho/revenues";
 import { getContract } from "./contracts";
 const readWorks = createCachedWorksReader({
   cache: getContractsCache,
@@ -70,14 +66,3 @@ export async function getWorks() {
   await connection();
   return readWorks();
 }
-export async function getRevenues(year: number) {
-  if (!Number.isInteger(year) || year < 2000 || year > 2100)
-    throw new Error("Exercício inválido");
-  await connection();
-  return readRevenues(year);
-}
-const readRevenues = createCachedRevenuesReader({
-  cache: getContractsCache,
-  read: (year) =>
-    readSource((signal) => fetchRevenues(year, signal), { timeoutMs: 120_000 }),
-});

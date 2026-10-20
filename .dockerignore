@@ -17,3 +17,5 @@ runtime.env
 secrets/
 *.pem
 *.key
+
+dist/

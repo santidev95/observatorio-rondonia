@@ -17,6 +17,9 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      TEST_REDIS_URL: redis://127.0.0.1:6379
+      TEST_REDIS_PASSWORD: fixture-ci-redis
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -27,9 +30,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run format:check
+      - name: Preparar Redis local isolado para testes
+        run: |
+          docker run -d --name redis-test -p 127.0.0.1:6379:6379 --env REDIS_PASSWORD=fixture-ci-redis redis:8-alpine sh -c 'exec redis-server --save "" --appendonly no --requirepass "$REDIS_PASSWORD"'
+          for attempt in $(seq 1 30); do
+            if docker exec redis-test sh -c 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli ping' | grep -q PONG; then exit 0; fi
+            sleep 1
+          done
+          exit 1
       - run: npm test
       - run: npm run typecheck
       - run: npm run build
+      - run: npm run build:worker
       - name: Validar limites do deploy
         run: |
           bash -n deploy/*.sh

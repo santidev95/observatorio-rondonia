@@ -13,9 +13,7 @@ import { revenueDashboardView } from "../src/features/revenues/dashboard-view";
 import { revenueTotals, periodValue } from "../src/features/revenues/filters";
 import { parseRevenueQuery } from "../src/core/municipal-query";
 import {
-  createCachedRevenuesReader,
   createCachedWorksReader,
-  revenuesCacheKey,
   WORKS_CACHE_KEY,
 } from "../src/core/municipal-cache";
 import { revenueSnapshotSchema } from "../src/core/revenues";
@@ -258,73 +256,6 @@ test("Conectores só publicam catálogo completo e a previsão vem do endpoint p
       apiPage([rawWork()], 1, 2, 100)) as typeof fetch),
   );
 });
-test("Cache separa módulos/anos, mantém TTL e consulta original e rejeita cobertura ou ano adulterado", async () => {
-  let calls = 0;
-  const entries = new Map<string, unknown>();
-  const cache = {
-    get: async (k: string) => entries.get(k),
-    set: async (k: string, v: unknown, ttl: number) => {
-      assert.equal(ttl, 3600);
-      entries.set(k, v);
-    },
-  };
-  const read = createCachedRevenuesReader({
-    cache: () => cache,
-    now: () => Date.parse(at) + 1000,
-    read: async () => {
-      calls++;
-      return { data: snapshot(), fetchedAt: at };
-    },
-  });
-  assert.equal((await read(2026)).cache.status, "miss");
-  assert.equal((await read(2026)).cache.status, "hit");
-  assert.equal(calls, 1);
-  assert.notEqual(revenuesCacheKey(2025), revenuesCacheKey(2026));
-  assert.notEqual(revenuesCacheKey(2026), WORKS_CACHE_KEY);
-  entries.set(revenuesCacheKey(2026), {
-    key: revenuesCacheKey(2026),
-    result: {
-      data: {
-        ...snapshot(),
-        years: [{ ...snapshot().years[0], receipts: 999 }],
-      },
-      fetchedAt: at,
-    },
-    expiresAt: "2026-10-19T13:00:00.000Z",
-  });
-  assert.equal((await read(2026)).cache.status, "miss");
-  assert.equal(calls, 2);
-  const noSource = createCachedWorksReader({
-    cache: () => cache,
-    read: async () => {
-      throw new Error("Fonte falhou");
-    },
-  });
-  await assert.rejects(() => noSource());
-  assert.ok(!entries.has(WORKS_CACHE_KEY));
-});
-test("Falha no Redis conserva a resposta válida e falha na fonte não vira zero", async () => {
-  const read = createCachedRevenuesReader({
-    cache: () => ({
-      get: async () => {
-        throw new Error("segredo");
-      },
-      set: async () => {
-        throw new Error("não deve gravar");
-      },
-    }),
-    read: async () => ({ data: snapshot(), fetchedAt: at }),
-  });
-  assert.equal((await read(2026)).cache.status, "unavailable");
-  const failure = createCachedRevenuesReader({
-    cache: () => null,
-    read: async () => {
-      throw new Error("API indisponível");
-    },
-  });
-  await assert.rejects(() => failure(2026));
-});
-
 test("Falha 500 transitória é repetida com limite e não vira catálogo vazio", async () => {
   let calls = 0;
   const r = await fetchWorks(signal(), (async () =>
@@ -361,4 +292,46 @@ test("Apresentação segue o PVH com moeda compacta nos indicadores e consulta n
   assert.equal(currency(0), "R$ 0,00");
   assert.equal(currency(null), "Não informado");
   assert.ok(currency(235755306200, true).length < 18);
+});
+
+test("Obras conserva cache por uma hora e não grava falhas da fonte", async () => {
+  const entries = new Map<string, unknown>();
+  const cache = {
+    get: async (k: string) => entries.get(k),
+    set: async (k: string, v: unknown, ttl: number) => {
+      assert.equal(ttl, 3600);
+      entries.set(k, v);
+    },
+  };
+  let calls = 0;
+  const read = createCachedWorksReader({
+    cache: () => cache,
+    now: () => Date.parse(at) + 1000,
+    read: async () => {
+      calls++;
+      return {
+        data: {
+          records: [normalizeWork(rawWork())],
+          sourceUrl:
+            "https://api.portovelho.ro.gov.br/api/v1/obras?por-pagina=100",
+          complete: true,
+          total: 1,
+          warnings: [],
+        },
+        fetchedAt: at,
+      };
+    },
+  });
+  assert.equal((await read()).cache.status, "miss");
+  assert.equal((await read()).cache.status, "hit");
+  assert.equal(calls, 1);
+  entries.delete(WORKS_CACHE_KEY);
+  const failure = createCachedWorksReader({
+    cache: () => cache,
+    read: async () => {
+      throw new Error("Fonte falhou");
+    },
+  });
+  await assert.rejects(() => failure());
+  assert.ok(!entries.has(WORKS_CACHE_KEY));
 });

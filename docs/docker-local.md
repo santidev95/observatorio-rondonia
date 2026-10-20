@@ -35,3 +35,7 @@ Essas variáveis se destinam apenas ao Compose. O aplicativo recebe internamente
 A porta do site é publicada apenas em 127.0.0.1. Redis não publica porta no host e só é acessado na rede interna do projeto. O volume `redis_data` conserva o cache entre reinícios; as chaves mantêm o TTL de uma hora. Esse volume não é banco histórico dos dados municipais. A senha padrão é para desenvolvimento local; este arquivo não configura uma publicação em produção.
 
 O Dockerfile usa estágios separados para dependências, build e execução, e executa o servidor com o usuário `node`. A opção `DOCKER_BUILD=1` habilita a saída standalone somente na construção da imagem, sem mudar o fluxo normal de desenvolvimento local.
+
+## Receitas em segundo plano
+
+O Compose inicia `revenues-worker` junto da aplicação e do Redis. A primeira carga é processada sem bloquear a página; ela mostra o estado da atualização e passa a exibir o catálogo quando a carga completa é validada. `docker compose logs -f revenues-worker` mostra somente exercício e estado, sem registros brutos ou credenciais. Execute `docker compose up --build -d` após atualizar o código.

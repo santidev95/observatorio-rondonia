@@ -16,11 +16,13 @@ Abra [http://localhost:3000](http://localhost:3000). O Compose inclui um Redis l
 
 ## Executar localmente com Node.js
 
-Node.js 22 ou superior e npm. O cache usa Redis em Docker na VPS: copie `.env.example` para `.env.local` e configure `REDIS_URL` e `REDIS_PASSWORD` somente no servidor. Sem essas variáveis, a consulta funciona diretamente pela API, sem cache. Não é necessário Docker ou PostgreSQL.
+Node.js 22 ou superior e npm. O cache usa Redis em Docker na VPS: copie `.env.example` para `.env.local` e configure `REDIS_URL` e `REDIS_PASSWORD` somente no servidor. Sem essas variáveis, a consulta funciona diretamente pela API, sem cache. Não é necessário PostgreSQL. Para Receitas, configure Redis e execute o worker em outro terminal; o site lê a última carga válida e não espera uma coleta durante a requisição.
 
 ```sh
 npm ci
 npm run dev
+# Em outro terminal, com Redis configurado no .env.local:
+npm run worker:receitas
 ```
 
 Abra o endereço indicado pelo Next.js. No Windows do mantenedor, prefixe os comandos com `rtk proxy`.
@@ -51,7 +53,7 @@ O site está em [rondonia.dadosabertos.org](https://rondonia.dadosabertos.org), 
 
 Requisição → validação dos filtros → cache Redis → em caso de ausência ou expiração, API municipal → normalização → cache por uma hora → HTML ou JSON, preservando o horário original da consulta à fonte.
 
-Catálogo de Obras, resumos anuais de Receitas e páginas/fichas de Contratos têm chaves independentes no Redis, isoladas por UF, município, módulo e versão, com validade de uma hora. Se o cache falhar, a aplicação tenta a API diretamente; erros e contratos inexistentes não são armazenados. O JSON informa `cache.status` e `cache.expiresAt`. Cache não é histórico: não há arquivo durável ou restauração de revisões.
+Obras e Contratos têm cache de uma hora. Receitas é atualizada por worker: a cada hora para o exercício corrente e sob demanda após um dia para os demais, mantendo a última versão válida por até sete dias, com data e aviso de desatualização. [Fluxo e estados de Receitas](docs/receitas-background.md). Todos os módulos usam chaves independentes por UF, município, módulo e versão. Se o cache de Obras ou Contratos falhar, a aplicação tenta a API diretamente. Receitas informa indisponibilidade temporária se o Redis não puder ser lido; não inicia uma coleta na requisição. Erros e contratos inexistentes não substituem dados válidos. O JSON informa `cache.status` e `cache.expiresAt`. Cache não é histórico: não há arquivo durável ou restauração de revisões.
 
 O catálogo em `/porto-velho/contratos` aceita `ano` e `page`. O JSON normalizado está em `/api/porto-velho/contratos`, com os mesmos parâmetros. São 25 registros por página, sem totais financeiros calculados sobre dados parciais.
 
