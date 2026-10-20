@@ -46,3 +46,8 @@ jobs:
         run: |
           bash -n deploy/*.sh
           bash tests/deploy-validation.sh
+      - name: Validar imagem e worker sem acesso à prefeitura
+        run: |
+          image="ghcr.io/santidev95/observatorio-rondonia:sha-$GITHUB_SHA"
+          docker build --build-arg "APP_REVISION=$GITHUB_SHA" --tag "$image" .
+          bash scripts/smoke-worker.sh "$image"

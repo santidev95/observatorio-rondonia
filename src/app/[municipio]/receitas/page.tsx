@@ -93,7 +93,7 @@ export default async function RevenuePage({
       {!view && result && (
         <form
           action="/porto-velho/receitas"
-          className="search-panel revenue-filters"
+          className="search-panel revenue-filters revenue-initial-filters"
         >
           <label>
             Exercício
