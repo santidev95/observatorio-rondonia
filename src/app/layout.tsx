@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Geist } from "next/font/google";
 import { Header, Footer } from "@/components/chrome";
 import "./globals.css";
+
+const geist = Geist({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -9,7 +12,13 @@ export const metadata: Metadata = {
   },
   description:
     "Dados públicos dos municípios de Rondônia, com fontes, contexto e transparência. Uma plataforma cívica colaborativa em construção.",
-  icons: { icon: "/images/bandeira-rondonia.svg" },
+  icons: {
+    icon: {
+      url: "/images/bandeira-rondonia-circular.svg",
+      type: "image/svg+xml",
+      sizes: "any",
+    },
+  },
 };
 export const viewport: Viewport = {
   width: "device-width",
@@ -23,7 +32,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body>
+      <body className={geist.className}>
         <a className="skip-link" href="#conteudo">
           Pular para o conteúdo
         </a>

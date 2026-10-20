@@ -1,23 +1,35 @@
 import Link from "next/link";
 import { MunicipalMap } from "@/components/municipal-map";
+import { MunicipalitySearch } from "@/components/municipality-search";
 import { listMunicipalities } from "@/municipalities";
 import { getIntegrationStatus } from "@/core/integration-status";
 
 export default function HomePage() {
+  const municipalities = listMunicipalities().map((city) => ({
+    ibgeId: city.ibgeId,
+    slug: city.slug,
+    name: city.name,
+    stage: city.stage,
+    integrationStatus: getIntegrationStatus(city),
+  }));
   return (
     <main id="conteudo" className="container map-home">
       <div className="map-intro">
+        <p className="eyebrow">DADOS PÚBLICOS MUNICIPAIS</p>
         <h1>Escolha seu município.</h1>
+        <p>Explore dados de Rondônia com fontes oficiais e contexto.</p>
       </div>
-      <MunicipalMap
-        municipalities={listMunicipalities().map((city) => ({
-          ibgeId: city.ibgeId,
-          slug: city.slug,
-          name: city.name,
-          stage: city.stage,
-          integrationStatus: getIntegrationStatus(city),
-        }))}
-      />
+      <div className="municipality-toolbar">
+        <MunicipalitySearch municipalities={municipalities} />
+        <Link href="/porto-velho" className="pilot-shortcut" prefetch={false}>
+          <span>
+            <small>OBRAS, CONTRATOS E RECEITAS</small>
+            <strong>Consultar Porto Velho</strong>
+          </span>
+          <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+      <MunicipalMap municipalities={municipalities} />
       <noscript>
         <nav
           className="municipality-directory"

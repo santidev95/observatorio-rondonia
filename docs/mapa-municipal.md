@@ -26,7 +26,8 @@ No Windows do mantenedor, prefixe com `rtk proxy`. A atualização das fontes ge
 
 ## Interação
 
-- A tela inicial prioriza o mapa, com uma instrução curta, sem dropdown ou painel lateral.
+- A tela inicial prioriza o mapa, com uma instrução curta, busca por nome e acesso direto às consultas de Porto Velho.
+- A busca usa o cadastro local, aceita nomes sem acentos e informa a situação da integração. Os resultados são links navegáveis por Tab; Escape ou o botão de limpar restaura a busca. Não há consulta a APIs durante a busca.
 - Hover ou foco identifica o município; clique, Enter ou Espaço abre diretamente sua página.
 - No SVG, Tab entra no município ativo; setas percorrem a ordem alfabética, Home/End vão ao primeiro/último.
 - Controles permitem ampliar, reduzir e restaurar o mapa. Com zoom, a área tem rolagem nativa.
@@ -37,15 +38,14 @@ No Windows do mantenedor, prefixe com `rtk proxy`. A atualização das fontes ge
 
 As 52 páginas representam o cadastro geográfico, sem afirmar integração de dados:
 
-- Porto Velho: piloto em preparação.
+- Porto Velho: Obras, Contratos e Receitas disponíveis; a disponibilidade atual das fontes e a cobertura são informadas nos módulos.
 - Ji-Paraná: integração proposta.
 - Demais municípios: integração não iniciada.
-- Nenhum catálogo está publicado nesta etapa.
 
 A legenda compacta abaixo do mapa identifica a situação das integrações:
 
-- **Integrados (verde):** ao menos um módulo declarado disponível no cadastro. Essa situação deve ser usada somente após publicar e validar o catálogo; nenhum município está marcado assim nesta etapa.
-- **Em andamento (dourado):** preparação do piloto, atualmente Porto Velho. Não indica coleta em execução nem catálogo publicado.
+- **Integrados (verde):** ao menos um módulo declarado disponível no cadastro, atualmente Porto Velho. Essa situação deve ser usada somente após publicar e validar o catálogo.
+- **Em andamento (dourado):** preparação de um piloto sem módulos disponíveis. Não indica coleta em execução nem catálogo publicado.
 - **Não integrados (cinza):** proposta sem trabalho iniciado ou integração não iniciada, incluindo Ji-Paraná.
 
 Hover e foco preservam a cor da situação e destacam o contorno. As cores não representam dados eleitorais, financeiros, avaliação de gestão ou indicadores municipais.

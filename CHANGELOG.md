@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.3.0] — 2026-10-19
+
+### Novidades
+
+- **Busca por município:** pesquisa no cadastro local, sem diferenciar acentos, com resultados que informam a situação da integração. A home mantém o mapa como destaque e oferece acesso direto às consultas de Porto Velho.
+- **Termos de Uso:** nova página `/termos-de-uso`, com condições de consulta e reutilização, limites de cobertura e atualização, uso responsável, referências legais e créditos dos materiais.
+
+### Experiência visual
+
+- Tipografia Geist compartilhada pelas páginas, contraste reforçado nos textos de apoio e superfícies mais distintas, preservando o tema escuro e o dourado.
+- Cartões municipais com ícones, descrições mais curtas e botões alinhados. Os avisos de integrações indisponíveis e os limites das fontes permanecem explícitos.
+- Cabeçalho alinhado à esquerda, com mais espaço entre a bandeira e o nome do projeto. Bandeira circular no cabeçalho e no favicon, com cores e estrela preservadas; o SVG retangular original continua disponível.
+- Rodapé simplificado com os links “Termos de uso” e “Contribuir no GitHub”, acompanhados de ícones. O acesso para contribuir deixa o cabeçalho.
+- Valores financeiros mais legíveis, com algarismos tabulares, além de ajustes nos campos, nas tabelas e na navegação entre módulos.
+- Layouts adaptados a celular, controles de mapa com área de toque ampliada, foco visível e respeito à preferência por movimento reduzido.
+
+### Validação local
+
+- 90 testes aprovados e dois testes de integração com Redis real ignorados por dependerem de uma instância configurada.
+- TypeScript, build Next.js, formatação e verificação do diff aprovados.
+- Home, páginas municipais e Termos de Uso conferidos em desktop e larguras de 320 e 390 px, incluindo busca sem acentos, navegação por teclado, zoom do mapa e links do rodapé. Consulta de Obras revisada com fixtures sintéticas, sem coleta da Prefeitura.
+
+### Escopo
+
+- As mudanças preservam a cobertura municipal e as regras dos conectores, valores, fontes, cache e atualização em segundo plano. Outros municípios continuam em preparação.
+- A validação desta versão é local; CI remoto e publicação em produção devem ser verificados separadamente.
+
+**Changelog completo:** [v0.2.1...v0.3.0](https://github.com/santidev95/observatorio-rondonia/compare/v0.2.1...v0.3.0)
+
 ## [0.2.1] — 2026-10-19
 
 ### Novidades
@@ -58,5 +87,6 @@
 
 **Changelog completo:** [v0.1.0...v0.2.0](https://github.com/santidev95/observatorio-rondonia/compare/v0.1.0...v0.2.0)
 
+[0.3.0]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.3.0
 [0.2.1]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.2.1
 [0.2.0]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.2.0
