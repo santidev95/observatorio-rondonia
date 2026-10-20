@@ -9,7 +9,7 @@
 - APIs municipais variam: regras específicas ficam em `src/connectors/`; a apresentação consome contratos normalizados.
 - Preserve IDs e links oficiais, valores em centavos, null, zero e negativos quando previstos no domínio.
 - Cadastros em preparação não devem ser anunciados como integrações disponíveis.
-- Redis em Docker na VPS armazena páginas e fichas normalizadas de Contratos por até uma hora, com validação na leitura e fallback direto à API se o cache falhar. Arquivo durável e histórico não estão implementados. Preserve o horário original da consulta à fonte e não armazene erros, 404 ou respostas brutas.
+- Redis em Docker na VPS armazena páginas/fichas de Contratos, catálogo completo de Obras e resumos anuais de Receitas normalizados por até uma hora, com validação na leitura e fallback direto à API se o cache falhar. Arquivo durável e histórico não estão implementados. Preserve o horário original da consulta à fonte e não armazene erros, 404 ou respostas brutas.
 - Planeje chaves isoladas por UF, município, módulo e versão. Publique uma revisão somente após coleta completa e validação; uma falha preserva a última válida.
 - Segredos pertencem ao servidor e ao coletor, nunca a `NEXT_PUBLIC_`, ao navegador ou aos logs. Não copie arquivos `.env` de outros projetos.
 - Testes usam fixtures sintéticas. Coletas reais, commits, pushes, DNS e deploy precisam integrar o pedido autorizado.

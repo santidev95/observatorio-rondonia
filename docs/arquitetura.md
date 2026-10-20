@@ -7,7 +7,7 @@ Aplicação única em Next.js App Router, React e TypeScript. A tela inicial usa
 - Porto Velho: conector de Contratos implementado, com consulta direta e paginada à API oficial.
 - Ji-Paraná: proposta de segunda integração; fontes ainda não levantadas.
 - Demais municípios: cadastro geográfico, com integração não iniciada.
-- Obras e Receitas: módulos previstos no piloto.
+- Obras e Receitas de Porto Velho: conectores sob demanda, cobertura completa antes dos filtros e cache por uma hora. Veja [fontes e limites](obras-receitas-porto-velho.md).
 
 Veja [fontes e interação do mapa municipal](mapa-municipal.md) e [Contratos de Porto Velho](contratos-porto-velho.md). O código do conector não comprova publicação ou disponibilidade de uma instalação de produção.
 
@@ -35,7 +35,7 @@ flowchart LR
 ```
 
 - 25 registros por página, com filtro opcional de ano, e ficha individual pelo ID oficial.
-- Apenas Contratos de Porto Velho possui conector.
+- Porto Velho possui conectores de Obras, Contratos e Receitas. Obras lê o catálogo completo; Receitas consolida o exercício selecionado. Contratos permanece paginado.
 - `connection()` exclui as consultas do build; `fetch` usa `cache: "no-store"`.
 - Timeout, limite de tamanho da resposta e erros públicos sem conteúdo bruto.
 - IDs únicos, modelo, contagens e metadados são conferidos antes de responder. O ano é um parâmetro solicitado à fonte: divergências no ano publicado geram avisos explícitos, preservando registros e totais oficiais.
@@ -61,7 +61,7 @@ A proposta anterior de API → coleta completa → arquivo durável → Redis co
 
 O CI valida PRs e pushes com fixtures sintéticas. Não recebe secrets, consulta a API municipal ou publica o site. Não há DNS, cron ou deploy configurados.
 
-O runtime das rotas de contratos é Node.js. Hospedagem futura em Workers exige validação específica. O endereço pretendido é `rondonia.dadosabertos.org`, com uma aplicação e paths por município.
+O runtime das rotas de dados é Node.js. Hospedagem futura em Workers exige validação específica. O endereço pretendido é `rondonia.dadosabertos.org`, com uma aplicação e paths por município.
 
 ## Documentação consultada
 

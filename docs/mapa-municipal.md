@@ -27,10 +27,9 @@ No Windows do mantenedor, prefixe com `rtk proxy`. A atualização das fontes ge
 ## Interação
 
 - A tela inicial prioriza o mapa, com uma instrução curta, sem dropdown ou painel lateral.
-- Hover ou foco identifica o município; clique, Enter ou Espaço mostra apenas nome, estágio e link de acesso.
-- No SVG, Tab entra no município ativo; setas percorrem a ordem alfabética, Home/End vão ao primeiro/último e Escape limpa a seleção.
+- Hover ou foco identifica o município; clique, Enter ou Espaço abre diretamente sua página.
+- No SVG, Tab entra no município ativo; setas percorrem a ordem alfabética, Home/End vão ao primeiro/último.
 - Controles permitem ampliar, reduzir e restaurar o mapa. Com zoom, a área tem rolagem nativa.
-- A seleção mostra uma faixa compacta sobre o mapa para abrir a página, em desktop e celular.
 - Sem JavaScript, uma lista de links é exibida como alternativa ao mapa.
 - Slugs desconhecidos continuam retornando 404.
 
@@ -49,4 +48,6 @@ A legenda compacta abaixo do mapa identifica a situação das integrações:
 - **Em andamento (dourado):** preparação do piloto, atualmente Porto Velho. Não indica coleta em execução nem catálogo publicado.
 - **Não integrados (cinza):** proposta sem trabalho iniciado ou integração não iniciada, incluindo Ji-Paraná.
 
-Hover e seleção preservam a cor da situação e destacam o contorno. O detalhe da seleção mantém o estágio específico do município. As cores não representam dados eleitorais, financeiros, avaliação de gestão ou indicadores municipais.
+Hover e foco preservam a cor da situação e destacam o contorno. As cores não representam dados eleitorais, financeiros, avaliação de gestão ou indicadores municipais.
+
+A ativação de um município por clique, Enter ou Espaço navega diretamente para seu path. Setas, Home e End apenas movem o foco; a legenda das integrações e os controles de zoom são preservados.

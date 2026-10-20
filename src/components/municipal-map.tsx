@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useRef, useState, type KeyboardEvent } from "react";
 import geography from "@/geography/rondonia-map.json";
 import {
@@ -15,30 +15,24 @@ export type MapMunicipality = {
   stage: "pilot" | "planned" | "not-started";
   integrationStatus: IntegrationStatus;
 };
-const stageLabels = {
-  pilot: "Piloto em preparação",
-  planned: "Integração proposta",
-  "not-started": "Integração não iniciada",
-} as const;
 
 export function MunicipalMap({
   municipalities,
 }: {
   municipalities: MapMunicipality[];
 }) {
-  const [selectedId, setSelectedId] = useState("");
+  const router = useRouter();
   const [hoveredId, setHoveredId] = useState("");
   const [focusedId, setFocusedId] = useState("1100205");
   const [zoom, setZoom] = useState(1);
   const paths = useRef<Record<string, SVGPathElement | null>>({});
   const canvas = useRef<HTMLDivElement>(null);
-  const selected = municipalities.find((city) => city.ibgeId === selectedId);
   const hovered = municipalities.find((city) => city.ibgeId === hoveredId);
   const indexed = new Map(municipalities.map((city) => [city.ibgeId, city]));
 
   function choose(id: string) {
-    setSelectedId(id);
-    if (id) setFocusedId(id);
+    const city = indexed.get(id);
+    if (city) router.push("/" + city.slug);
   }
   function resetView() {
     setZoom(1);
@@ -48,10 +42,6 @@ export function MunicipalMap({
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       choose(id);
-      return;
-    }
-    if (event.key === "Escape") {
-      choose("");
       return;
     }
     const index = municipalities.findIndex((city) => city.ibgeId === id);
@@ -120,7 +110,7 @@ export function MunicipalMap({
             </title>
             <desc id="municipal-map-description">
               Use as setas para percorrer os municípios e Enter ou Espaço para
-              selecionar. Escape limpa a seleção.
+              abrir a página do município.
             </desc>
             <g transform={geography.transform}>
               {geography.municipalities.map((shape) => {
@@ -137,12 +127,11 @@ export function MunicipalMap({
                     data-municipality={city.slug}
                     data-integration-status={city.integrationStatus}
                     aria-describedby={`integration-status-${city.integrationStatus}`}
-                    className={`map-region integration-status-${city.integrationStatus}${selectedId === shape.id ? " is-selected" : ""}${hoveredId === shape.id ? " is-hovered" : ""}`}
+                    className={`map-region integration-status-${city.integrationStatus}${hoveredId === shape.id ? " is-hovered" : ""}`}
                     vectorEffect="non-scaling-stroke"
-                    role="button"
+                    role="link"
                     tabIndex={focusedId === shape.id ? 0 : -1}
-                    aria-label={`Selecionar ${city.name}`}
-                    aria-pressed={selectedId === shape.id}
+                    aria-label={`Abrir município de ${city.name}`}
                     onPointerEnter={() => setHoveredId(shape.id)}
                     onPointerLeave={() => setHoveredId("")}
                     onFocus={() => {
@@ -160,33 +149,6 @@ export function MunicipalMap({
             </g>
           </svg>
         </div>
-        {selected && (
-          <div className="map-selection">
-            <div
-              className="map-selection-copy"
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              <h2>{selected.name}</h2>
-              <span>{stageLabels[selected.stage]}</span>
-            </div>
-            <Link
-              className="map-selection-link"
-              href={`/${selected.slug}`}
-              aria-label={`Abrir município de ${selected.name}`}
-            >
-              Abrir <span aria-hidden="true">→</span>
-            </Link>
-            <button
-              className="clear-selection"
-              type="button"
-              aria-label="Limpar seleção"
-              onClick={() => choose("")}
-            >
-              ×
-            </button>
-          </div>
-        )}
       </div>
       <div className="map-caption">
         <ul className="map-legend" aria-label="Situação das integrações">

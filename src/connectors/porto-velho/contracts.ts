@@ -1,3 +1,4 @@
+import { municipalFetch } from "./transport";
 import { z } from "zod";
 import {
   CONTRACTS_PAGE_SIZE,
@@ -451,7 +452,7 @@ async function readSuccessfulBody(response: Response): Promise<unknown> {
 export async function fetchPortoVelhoContractsPage(
   query: ContractsQuery,
   signal: AbortSignal,
-  fetcher: typeof fetch = fetch,
+  fetcher: typeof fetch = municipalFetch,
 ): Promise<ContractPage> {
   const validatedQuery = contractsQuerySchema.safeParse(query);
   if (!validatedQuery.success)
@@ -521,7 +522,7 @@ export async function fetchPortoVelhoContractsPage(
 export async function fetchPortoVelhoContract(
   id: string,
   signal: AbortSignal,
-  fetcher: typeof fetch = fetch,
+  fetcher: typeof fetch = municipalFetch,
 ): Promise<ContractRecord | null> {
   if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id)))
     throw new Error("ID de contrato inválido.");

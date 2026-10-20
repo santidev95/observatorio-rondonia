@@ -5,7 +5,7 @@ const municipalities: Municipality[] = geography.municipalities.map((city) => {
   const pilot = city.slug === "porto-velho";
   const proposed = city.slug === "ji-parana";
   const note = pilot
-    ? "Integração prevista após a validação do piloto de Contratos."
+    ? "Conector implementado para consultar a fonte oficial. Acesse o módulo para verificar a disponibilidade e a cobertura."
     : "Fonte e cobertura ainda não verificadas.";
   return municipalitySchema.parse({
     ibgeId: city.id,
@@ -14,7 +14,7 @@ const municipalities: Municipality[] = geography.municipalities.map((city) => {
     state: "RO",
     stage: pilot ? "pilot" : proposed ? "planned" : "not-started",
     description: pilot
-      ? "O primeiro município da plataforma. A integração começa pelo catálogo de contratos."
+      ? "O primeiro município da plataforma. Consulte Obras, Contratos e Receitas nas fontes oficiais."
       : proposed
         ? "Proposta para a segunda integração. O levantamento das fontes ainda precisa ser realizado."
         : "A integração deste município ainda não foi iniciada. As fontes e a cobertura precisam ser levantadas.",
@@ -28,12 +28,12 @@ const municipalities: Municipality[] = geography.municipalities.map((city) => {
       },
       obras: {
         status: pilot || proposed ? "planned" : "not-started",
-        connectorId: null,
+        connectorId: pilot ? "porto-velho-api-v1" : null,
         note,
       },
       receitas: {
         status: pilot || proposed ? "planned" : "not-started",
-        connectorId: null,
+        connectorId: pilot ? "porto-velho-api-v1" : null,
         note,
       },
     },

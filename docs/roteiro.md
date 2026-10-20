@@ -8,7 +8,7 @@
 - Timeout e mensagens explícitas quando a fonte está indisponível.
 - Guia de contribuição, templates e CI sem publicação.
 
-A implementação não comprova publicação ou disponibilidade em produção. Obras, Receitas e outros municípios continuam em preparação.
+A implementação não comprova publicação ou disponibilidade em produção. Obras e Receitas de Porto Velho também foram implementados; outros municípios continuam em preparação.
 
 ## 1. Validar a experiência de pesquisa
 
@@ -26,7 +26,7 @@ Levantar as fontes de Ji-Paraná ou de outro município escolhido. Validar difer
 
 ## 4. Expansão
 
-Adicionar Obras e Receitas por município depois de definir seus contratos e evidências. Comparações exigem conceitos, períodos e cobertura compatíveis.
+Ampliar Obras e Receitas para outros municípios depois de verificar suas fontes e definir seus contratos e evidências. Comparações exigem conceitos, períodos e cobertura compatíveis.
 
 ## 5. Publicação
 

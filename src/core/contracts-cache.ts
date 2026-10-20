@@ -71,7 +71,7 @@ async function cacheOperation<T>(
   }
 }
 
-function cachedReader<T extends { fetchedAt: string }>(
+export function cachedReader<T extends { fetchedAt: string }>(
   options: Options,
   schema: z.ZodType<T>,
   matches: (value: T, key: string) => boolean,

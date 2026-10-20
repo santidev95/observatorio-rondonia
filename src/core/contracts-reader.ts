@@ -10,7 +10,7 @@ export type ContractResult = { data: ContractRecord | null; fetchedAt: string };
 
 type TimingOptions = { now?: () => number; timeoutMs?: number };
 
-async function readSource<T>(
+export async function readSource<T>(
   load: (signal: AbortSignal) => Promise<T>,
   options: TimingOptions,
 ): Promise<{ data: T; fetchedAt: string }> {
@@ -31,6 +31,7 @@ async function readSource<T>(
       fetchedAt: new Date((options.now ?? Date.now)()).toISOString(),
     };
   } catch {
+    controller.abort();
     throw new ContractsDataError("source-unavailable");
   } finally {
     if (timer !== undefined) clearTimeout(timer);

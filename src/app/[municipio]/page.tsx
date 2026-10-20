@@ -35,11 +35,13 @@ export default async function MunicipalityPage({ params }: Props) {
       <p className="page-description">{city.description}</p>
       <div className="project-notice">
         <span className="notice-label">
-          {portoVelho ? "CONSULTA DE CONTRATOS" : "DADOS AINDA INDISPONÍVEIS"}
+          {portoVelho
+            ? "CONSULTA DE DADOS PÚBLICOS"
+            : "DADOS AINDA INDISPONÍVEIS"}
         </span>
         <p>
           {portoVelho ? (
-            "Consulte Contratos para verificar a disponibilidade atual dos dados da fonte oficial. Os demais módulos permanecem em preparação."
+            "Consulte Obras, Contratos e Receitas para verificar os dados e a disponibilidade atual das fontes oficiais."
           ) : (
             <>
               {city.stage === "not-started"
@@ -59,7 +61,7 @@ export default async function MunicipalityPage({ params }: Props) {
           {moduleIds.map((id) => (
             <article className="module-card" key={id}>
               <span className="badge">
-                {portoVelho && id === "contratos"
+                {portoVelho
                   ? "Em implantação"
                   : city.modules[id].status === "not-started"
                     ? "Não iniciada"
@@ -67,13 +69,13 @@ export default async function MunicipalityPage({ params }: Props) {
               </span>
               <h3>{moduleLabels[id]}</h3>
               <p>{city.modules[id].note}</p>
-              {portoVelho && id === "contratos" && (
+              {portoVelho && (
                 <Link
-                  href="/porto-velho/contratos"
+                  href={"/porto-velho/" + id}
                   prefetch={false}
                   className="text-link contracts-module-link"
                 >
-                  Consultar Contratos →
+                  Consultar {moduleLabels[id]} →
                 </Link>
               )}
             </article>

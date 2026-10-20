@@ -706,62 +706,6 @@ nav {
   font-size: 13px;
   color: var(--ink);
 }
-.map-selection {
-  position: absolute;
-  left: 50%;
-  bottom: 8px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  width: max-content;
-  max-width: calc(100% - 24px);
-  padding: 14px 16px 14px 20px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--surface);
-  box-shadow: 0 8px 30px #0005;
-}
-.map-selection-copy {
-  min-width: 0;
-}
-.map-selection-copy h2 {
-  font-size: 20px;
-  letter-spacing: -0.4px;
-  margin: 0;
-}
-.map-selection-copy > span {
-  display: block;
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 11px;
-}
-.map-selection-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  min-height: 42px;
-  padding: 8px 14px;
-  border-radius: 5px;
-  background: var(--gold);
-  color: #211b0b;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-  flex: none;
-}
-.clear-selection {
-  width: 32px;
-  height: 36px;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 22px;
-  cursor: pointer;
-  flex: none;
-}
 .map-caption {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -820,11 +764,7 @@ nav {
   font-size: 13px;
 }
 @media (hover: hover) and (pointer: fine) {
-  .map-controls button:not(:disabled):hover,
-  .clear-selection:hover {
-    background: #37342b;
-  }
-  .map-selection-link:hover {
+  .map-controls button:not(:disabled):hover {
     background: #ffdb56;
     text-decoration: none;
   }
@@ -857,29 +797,6 @@ nav {
     top: 8px;
     max-width: calc(100% - 48px);
     font-size: 12px;
-  }
-  .map-selection {
-    width: calc(100% - 8px);
-    max-width: none;
-    gap: 10px;
-    padding: 12px;
-    bottom: 8px;
-  }
-  .map-selection-copy {
-    flex: 1;
-  }
-  .map-selection-copy h2 {
-    font-size: 17px;
-  }
-  .map-selection-copy > span {
-    font-size: 10px;
-  }
-  .map-selection-link {
-    gap: 8px;
-    padding: 8px 12px;
-  }
-  .clear-selection {
-    width: 26px;
   }
   .map-caption {
     display: flex;

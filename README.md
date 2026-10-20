@@ -4,9 +4,17 @@
 
 Plataforma cívica independente e colaborativa para consultar dados públicos dos municípios de Rondônia. Voltada a cidadãos, jornalistas e pesquisa sobre a gestão municipal, com fontes oficiais, datas e limites de cobertura.
 
-**Estado atual: piloto em desenvolvimento.** O mapa permite escolher os 52 municípios de Rondônia. Contratos de Porto Velho possui consulta direta à API oficial, com filtro de ano, paginação e JSON normalizado em `/porto-velho/contratos`. A implementação local não comprova publicação em produção. Obras, Receitas e outros municípios permanecem em preparação.
+**Estado atual: piloto em desenvolvimento.** O mapa permite escolher os 52 municípios de Rondônia. Contratos de Porto Velho possui consulta direta à API oficial, com filtro de ano, paginação e JSON normalizado em `/porto-velho/contratos`. A implementação local não comprova publicação em produção. Obras e Receitas de Porto Velho também possuem consulta oficial, com listagens e filtros adaptados do Observatório PVH. Outros municípios permanecem em preparação.
 
-## Executar localmente
+## Rodar com Docker
+
+```sh
+docker compose up --build -d
+```
+
+Abra [http://localhost:3000](http://localhost:3000). O Compose inclui um Redis local e não exige configurar a VPS. Veja [Docker local](docs/docker-local.md) para portas, senha e comandos.
+
+## Executar localmente com Node.js
 
 Node.js 22 ou superior e npm. O cache usa Redis em Docker na VPS: copie `.env.example` para `.env.local` e configure `REDIS_URL` e `REDIS_PASSWORD` somente no servidor. Sem essas variáveis, a consulta funciona diretamente pela API, sem cache. Não é necessário Docker ou PostgreSQL.
 
@@ -43,10 +51,11 @@ O endereço proposto é `rondonia.dadosabertos.org`, com caminhos como `/porto-v
 
 Requisição → validação dos filtros → cache Redis → em caso de ausência ou expiração, API municipal → normalização → cache por uma hora → HTML ou JSON, preservando o horário original da consulta à fonte.
 
-Páginas e fichas de Contratos têm chaves independentes no Redis, isoladas por UF, município, módulo e versão, com validade de uma hora. Se o cache falhar, a aplicação tenta a API diretamente; erros e contratos inexistentes não são armazenados. O JSON informa `cache.status` e `cache.expiresAt`. Cache não é histórico: não há arquivo durável ou restauração de revisões.
+Catálogo de Obras, resumos anuais de Receitas e páginas/fichas de Contratos têm chaves independentes no Redis, isoladas por UF, município, módulo e versão, com validade de uma hora. Se o cache falhar, a aplicação tenta a API diretamente; erros e contratos inexistentes não são armazenados. O JSON informa `cache.status` e `cache.expiresAt`. Cache não é histórico: não há arquivo durável ou restauração de revisões.
 
 O catálogo em `/porto-velho/contratos` aceita `ano` e `page`. O JSON normalizado está em `/api/porto-velho/contratos`, com os mesmos parâmetros. São 25 registros por página, sem totais financeiros calculados sobre dados parciais.
 
+- [Obras e Receitas: fontes, filtros e cobertura](docs/obras-receitas-porto-velho.md)
 - [Redis na VPS e configuração da conexão](docs/redis.md)
 - [Contratos de Porto Velho e operação](docs/contratos-porto-velho.md)
 
