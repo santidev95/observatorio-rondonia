@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, type KeyboardEvent } from "react";
+import { ActionIcon, ActionIconGroup } from "@mantine/core";
 import geography from "@/geography/rondonia-map.json";
 import {
   integrationStatusLabels,
@@ -66,27 +67,41 @@ export function MunicipalMap({
       aria-label="Escolher município"
     >
       <div className="map-stage">
-        <div className="map-controls" role="group" aria-label="Zoom do mapa">
-          <button
+        <ActionIconGroup
+          className="map-controls"
+          orientation="vertical"
+          aria-label="Zoom do mapa"
+        >
+          <ActionIcon
             type="button"
+            variant="default"
+            size={44}
             aria-label="Ampliar mapa"
             disabled={zoom >= 3}
             onClick={() => setZoom((current) => Math.min(3, current + 0.5))}
           >
-            +
-          </button>
-          <button
+            <span aria-hidden="true">+</span>
+          </ActionIcon>
+          <ActionIcon
             type="button"
+            variant="default"
+            size={44}
             aria-label="Reduzir mapa"
             disabled={zoom <= 1}
             onClick={() => setZoom((current) => Math.max(1, current - 0.5))}
           >
-            −
-          </button>
-          <button type="button" aria-label="Restaurar mapa" onClick={resetView}>
-            ↺
-          </button>
-        </div>
+            <span aria-hidden="true">−</span>
+          </ActionIcon>
+          <ActionIcon
+            type="button"
+            variant="default"
+            size={44}
+            aria-label="Restaurar mapa"
+            onClick={resetView}
+          >
+            <span aria-hidden="true">↺</span>
+          </ActionIcon>
+        </ActionIconGroup>
         {hovered && (
           <div className="map-hover" aria-hidden="true">
             {hovered.name}

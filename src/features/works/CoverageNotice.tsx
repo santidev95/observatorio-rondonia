@@ -1,3 +1,4 @@
+import { Alert } from "@mantine/core";
 import type { WorksCatalog } from "@/core/works";
 
 export function CoverageNotice({ catalog }: { catalog: WorksCatalog }) {
@@ -7,8 +8,8 @@ export function CoverageNotice({ catalog }: { catalog: WorksCatalog }) {
 
   if ("rowDifference" in coverage)
     return (
-      <section
-        className="notice works-coverage-notice"
+      <Alert
+        className="works-coverage-notice"
         role="status"
         aria-label="Dados inconsistentes na fonte"
       >
@@ -37,12 +38,12 @@ export function CoverageNotice({ catalog }: { catalog: WorksCatalog }) {
           registros retornados.
         </p>
         <a href={catalog.sourceUrl}>Conferir fonte oficial ↗</a>
-      </section>
+      </Alert>
     );
 
   return (
-    <section
-      className="notice works-coverage-notice"
+    <Alert
+      className="works-coverage-notice"
       role="status"
       aria-label="Cobertura parcial da consulta"
     >
@@ -65,6 +66,6 @@ export function CoverageNotice({ catalog }: { catalog: WorksCatalog }) {
         qual. A consulta abrange somente as obras recebidas.
       </p>
       <a href={catalog.sourceUrl}>Conferir fonte oficial ↗</a>
-    </section>
+    </Alert>
   );
 }

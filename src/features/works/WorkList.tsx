@@ -1,5 +1,13 @@
 "use client";
 import Link from "next/link";
+import {
+  ActionIcon,
+  Button,
+  NativeSelect,
+  Pagination,
+  Table,
+  TextInput,
+} from "@mantine/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FileSearch, Search, X } from "@/features/shared/icons";
 import type { Work } from "@/core/works";
@@ -145,92 +153,89 @@ export function WorkList({
     >
       {!home && (
         <div className="search-panel work-search">
-          <div className="search-field">
-            <Search size={20} aria-hidden="true" />
-            <label className="sr-only" htmlFor="work-search">
-              Buscar obra ou localização
-            </label>
-            <input
-              id="work-search"
-              type="search"
-              value={filters.q}
-              placeholder="Buscar obra ou localização"
-              enterKeyHint="search"
-              aria-describedby="work-search-help"
-              onChange={(event) => update({ q: event.target.value })}
-              onKeyDown={(event) => {
-                if (event.key === "Escape") update({ q: "" });
-              }}
-            />
-            {filters.q && (
-              <button
-                type="button"
-                className="search-clear"
-                aria-label="Limpar busca"
-                onClick={() => {
-                  update({ q: "" });
-                  document.getElementById("work-search")?.focus();
-                }}
-              >
-                <X size={18} aria-hidden="true" />
-              </button>
-            )}
-          </div>
+          <TextInput
+            className="work-search-input"
+            id="work-search"
+            type="search"
+            aria-label="Buscar obra ou localização"
+            leftSection={<Search size={20} aria-hidden="true" />}
+            rightSectionPointerEvents="all"
+            rightSection={
+              filters.q ? (
+                <ActionIcon
+                  type="button"
+                  variant="subtle"
+                  aria-label="Limpar busca"
+                  onClick={() => {
+                    update({ q: "" });
+                    document.getElementById("work-search")?.focus();
+                  }}
+                >
+                  <X size={18} aria-hidden="true" />
+                </ActionIcon>
+              ) : null
+            }
+            value={filters.q}
+            placeholder="Buscar obra ou localização"
+            enterKeyHint="search"
+            aria-describedby="work-search-help"
+            onChange={(event) => update({ q: event.target.value })}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") update({ q: "" });
+            }}
+          />
           <p id="work-search-help" className="search-help">
             Busca nos registros carregados de obras, por nome e localização.
           </p>
           <div className="work-filter-controls">
-            <label className="work-filter">
-              <span>Situação</span>
-              <select
-                value={filters.status}
-                onChange={(event) => update({ status: event.target.value })}
-              >
-                <option value="">Todas as situações</option>
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <NativeSelect
+              className="work-filter"
+              label="Situação"
+              value={filters.status}
+              onChange={(event) => update({ status: event.target.value })}
+            >
+              <option value="">Todas as situações</option>
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </NativeSelect>
             <details className="more-filters">
               <summary>
                 Mais filtros
                 {filters.org || filters.neighborhood ? " · ativos" : ""}
               </summary>
               <div className="more-filters-content">
-                <label className="work-filter">
-                  <span>Secretaria responsável</span>
-                  <select
-                    value={filters.org}
-                    onChange={(event) => update({ org: event.target.value })}
-                  >
-                    <option value="">Todas as secretarias</option>
-                    {organizations.map(([code, name]) => (
-                      <option key={code} value={code}>
-                        {name === code
-                          ? `${code} — nome não informado`
-                          : `${name} (${code})`}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <NativeSelect
+                  className="work-filter"
+                  label="Secretaria responsável"
+                  value={filters.org}
+                  onChange={(event) => update({ org: event.target.value })}
+                >
+                  <option value="">Todas as secretarias</option>
+                  {organizations.map(([code, name]) => (
+                    <option key={code} value={code}>
+                      {name === code
+                        ? `${code} — nome não informado`
+                        : `${name} (${code})`}
+                    </option>
+                  ))}
+                </NativeSelect>
                 {neighborhoods.length > 0 && (
-                  <label className="work-filter">
-                    <span>Bairro</span>
-                    <select
-                      value={filters.neighborhood}
-                      onChange={(event) =>
-                        update({ neighborhood: event.target.value })
-                      }
-                    >
-                      <option value="">Todos os bairros</option>
-                      {neighborhoods.map((name) => (
-                        <option key={name}>{name}</option>
-                      ))}
-                    </select>
-                  </label>
+                  <NativeSelect
+                    className="work-filter"
+                    label="Bairro"
+                    value={filters.neighborhood}
+                    onChange={(event) =>
+                      update({ neighborhood: event.target.value })
+                    }
+                  >
+                    <option value="">Todos os bairros</option>
+                    {neighborhoods.map((name) => (
+                      <option key={name}>{name}</option>
+                    ))}
+                  </NativeSelect>
                 )}
                 {!neighborhoods.length && (
                   <p className="search-help">
@@ -241,13 +246,13 @@ export function WorkList({
               </div>
             </details>
             {active && (
-              <button
+              <Button
                 type="button"
-                className="clear-button"
+                variant="subtle"
                 onClick={() => update(defaultFilters)}
               >
                 Limpar todos os filtros
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -264,22 +269,21 @@ export function WorkList({
               {filtered.length}{" "}
               {filtered.length === 1 ? "obra encontrada" : "obras encontradas"}
             </span>
-            <label className="work-sort">
-              Ordenar
-              <select
-                aria-label="Ordenação"
-                value={filters.sort}
-                onChange={(event) => update({ sort: event.target.value })}
-              >
-                <option value="updated">Atualização da Prefeitura</option>
-                <option value="value">
-                  {annual
-                    ? "Maior valor total informado"
-                    : "Maior valor contratado"}
-                </option>
-                <option value="name">Nome da obra</option>
-              </select>
-            </label>
+            <NativeSelect
+              className="work-sort"
+              label="Ordenar"
+              aria-label="Ordenação"
+              value={filters.sort}
+              onChange={(event) => update({ sort: event.target.value })}
+            >
+              <option value="updated">Atualização da Prefeitura</option>
+              <option value="value">
+                {annual
+                  ? "Maior valor total informado"
+                  : "Maior valor contratado"}
+              </option>
+              <option value="name">Nome da obra</option>
+            </NativeSelect>
           </div>
         )}
         {shown.length ? (
@@ -291,27 +295,27 @@ export function WorkList({
                 role="region"
                 aria-label="Tabela de obras"
               >
-                <table className="works-table catalog-table">
-                  <caption className="sr-only">
+                <Table className="works-table catalog-table">
+                  <Table.Caption className="sr-only">
                     Obras da base municipal que correspondem à consulta
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Obra</th>
-                      <th scope="col">Local e responsável</th>
-                      <th scope="col" className="numeric">
+                  </Table.Caption>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th scope="col">Obra</Table.Th>
+                      <Table.Th scope="col">Local e responsável</Table.Th>
+                      <Table.Th scope="col" className="numeric">
                         {annual
                           ? "Valor total informado / pago"
                           : "Contratado / pago"}
-                      </th>
-                      <th scope="col">Situação</th>
-                      <th scope="col">Percentual da fonte</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                      </Table.Th>
+                      <Table.Th scope="col">Situação</Table.Th>
+                      <Table.Th scope="col">Percentual da fonte</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
                     {shown.map((work) => (
-                      <tr key={work.id}>
-                        <th scope="row">
+                      <Table.Tr key={work.id}>
+                        <Table.Th scope="row">
                           <Link
                             className="work-title"
                             href={detailHref(work)}
@@ -324,8 +328,8 @@ export function WorkList({
                             Atualizado pela Prefeitura:{" "}
                             {dateLabel(work.sourceUpdatedAt)}
                           </small>
-                        </th>
-                        <td>
+                        </Table.Th>
+                        <Table.Td>
                           <span className="location-text">
                             {work.locations[0]
                               ? sentenceCase(work.locations[0])
@@ -336,8 +340,8 @@ export function WorkList({
                               work.organization ??
                               "Responsável não informado"}
                           </small>
-                        </td>
-                        <td className="numeric">
+                        </Table.Td>
+                        <Table.Td className="numeric">
                           <span className="money">
                             {currency(
                               work.contractedCents ??
@@ -348,11 +352,11 @@ export function WorkList({
                           <small className="paid-value">
                             Pago: {currency(work.paidCents)}
                           </small>
-                        </td>
-                        <td>
+                        </Table.Td>
+                        <Table.Td>
                           <Status value={work.status} />
-                        </td>
-                        <td>
+                        </Table.Td>
+                        <Table.Td>
                           <span>
                             {percentLabel(work.reportedExecutionPercent)}
                           </span>
@@ -365,11 +369,11 @@ export function WorkList({
                               />
                             </span>
                           )}
-                        </td>
-                      </tr>
+                        </Table.Td>
+                      </Table.Tr>
                     ))}
-                  </tbody>
-                </table>
+                  </Table.Tbody>
+                </Table>
               </div>
               <p className="table-footnote">
                 Percentual da fonte: a Prefeitura não define se é avanço físico
@@ -409,15 +413,16 @@ export function WorkList({
                       Atualizado pela Prefeitura:{" "}
                       {dateLabel(work.sourceUpdatedAt)}
                     </small>
-                    <Link
-                      className="button button-secondary"
+                    <Button
+                      component={Link}
+                      className="work-details-button"
                       href={detailHref(work)}
                       prefetch={false}
                       onClick={() => rememberWorkPosition(municipality)}
                       aria-label={`Ver detalhes de ${workTitle(work.title)}`}
                     >
                       Ver detalhes →
-                    </Link>
+                    </Button>
                   </article>
                 </li>
               ))}
@@ -430,33 +435,23 @@ export function WorkList({
                   {filtered.length}
                 </span>
                 {pages > 1 && (
-                  <nav aria-label="Paginação" className="pagination">
-                    <button
-                      disabled={currentPage === 1}
-                      onClick={() => changePage(currentPage - 1)}
-                    >
-                      Anterior
-                    </button>
-                    {Array.from({ length: pages }, (_, index) => index + 1).map(
-                      (number) => (
-                        <button
-                          key={number}
-                          aria-current={
-                            currentPage === number ? "page" : undefined
-                          }
-                          aria-label={`Página ${number}`}
-                          onClick={() => changePage(number)}
-                        >
-                          {number}
-                        </button>
-                      ),
-                    )}
-                    <button
-                      disabled={currentPage === pages}
-                      onClick={() => changePage(currentPage + 1)}
-                    >
-                      Próxima
-                    </button>
+                  <nav aria-label="Paginação de obras">
+                    <Pagination
+                      total={pages}
+                      value={currentPage}
+                      onChange={changePage}
+                      getItemProps={(number) => ({
+                        "aria-label": `Página ${number}`,
+                      })}
+                      getControlProps={(control) => ({
+                        "aria-label": {
+                          first: "Primeira página",
+                          previous: "Página anterior",
+                          next: "Próxima página",
+                          last: "Última página",
+                        }[control],
+                      })}
+                    />
                   </nav>
                 )}
               </div>
@@ -478,21 +473,18 @@ export function WorkList({
             {works.length ? (
               <div className="empty-actions">
                 {filters.q && (
-                  <button className="button" onClick={() => update({ q: "" })}>
+                  <Button onClick={() => update({ q: "" })}>
                     Limpar busca
-                  </button>
+                  </Button>
                 )}
-                <button
-                  className="button button-secondary"
-                  onClick={() => update(defaultFilters)}
-                >
+                <Button onClick={() => update(defaultFilters)}>
                   Limpar todos os filtros
-                </button>
+                </Button>
               </div>
             ) : (
-              <Link className="button" href={"/" + municipality}>
+              <Button component={Link} href={"/" + municipality}>
                 Consultar fontes
-              </Link>
+              </Button>
             )}
           </div>
         )}

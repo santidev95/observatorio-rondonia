@@ -4,9 +4,7 @@
     border: 1px solid var(--line);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow:
-      0 10px 15px -3px #0002,
-      0 4px 6px -4px #0002;
+    box-shadow: var(--shadow);
   }
   .table-scroll {
     overflow-x: auto;
@@ -63,7 +61,7 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .works-table tbody tr:hover {
-      background: #282725;
+      background: var(--row-hover);
     }
   }
   .numeric {
@@ -125,38 +123,25 @@
     white-space: nowrap;
     font-size: 14px;
   }
-  .status {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 30px;
-    font-size: 12px;
-    line-height: 16px;
-    font-weight: 500;
-    background: #ffffff0a;
-    color: var(--muted);
-    text-align: left;
+  .work-status {
+    height: auto;
+    max-width: 100%;
+    padding: 6px 10px;
+    font-size: 14px;
+    line-height: 1.4;
+    text-transform: none;
   }
-  .status > span {
+  .work-status .mantine-Badge-label {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .work-status-dot {
+    display: block;
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: currentColor;
     flex: none;
-  }
-  .status.running {
-    background: #f2c23026;
-    color: var(--gold);
-  }
-  .status.finished {
-    color: var(--green);
-    background: #34d3991a;
-  }
-  .status.closed {
-    color: #ffb4ab;
-    background: #7d27274d;
   }
   .table-note {
     display: flex;
@@ -166,7 +151,7 @@
     background: var(--deep);
     color: var(--muted);
     font-size: 11px;
-    border-top: 1px solid #35353455;
+    border-top: 1px solid var(--line);
   }
   .table-note strong {
     color: var(--gold);
@@ -192,24 +177,9 @@
     gap: 12px;
     margin-top: 16px;
   }
-  .revenue-selects label,
+  .revenue-selects > .mantine-NativeSelect-root,
   .revenue-sort {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--dim);
     min-width: 0;
-  }
-  .revenue-selects select,
-  .revenue-sort select {
-    width: 100%;
-    border: 1px solid var(--line);
-    background: var(--surface-raised);
-    color: var(--muted);
-    border-radius: 8px;
-    min-height: 44px;
-    padding: 8px 10px;
   }
   .revenue-filter-footer,
   .revenue-coverage,
@@ -323,11 +293,11 @@
   .revenue-bar-space span {
     display: block;
     width: min(100%, 36px);
-    background: var(--gold);
+    background: var(--accent-fill);
     border-radius: 6px 6px 0 0;
   }
   .revenue-bar-space span.negative {
-    background: #ef8880;
+    background: var(--chart-negative);
   }
   .revenue-table-scroll {
     overflow-x: auto;
@@ -388,10 +358,6 @@
     margin-top: 24px;
     font-size: 13px;
     color: var(--muted);
-  }
-  .revenue-pagination > div {
-    display: flex;
-    gap: 12px;
   }
   .revenue-source-links {
     display: flex;
@@ -547,9 +513,6 @@
     outline: 2px solid var(--gold);
     outline-offset: 2px;
   }
-  .work-search input:focus-visible {
-    outline: none;
-  }
   .work-search input::-webkit-search-cancel-button {
     -webkit-appearance: none;
   }
@@ -594,25 +557,7 @@
     margin-top: 16px;
   }
   .work-filter {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-  }
-  .work-filter > span {
-    font-size: 14px;
-    color: var(--muted);
-  }
-  .work-filter select,
-  .work-sort select {
-    min-height: 44px;
-    background: var(--surface);
-    color: var(--ink);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 16px;
-    max-width: 100%;
+    min-width: min(100%, 180px);
   }
   .more-filters {
     flex: 1;
@@ -653,10 +598,7 @@
     gap: 16px;
   }
   .work-sort {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
+    min-width: min(100%, 240px);
   }
   .catalog-table {
     min-width: 920px;
@@ -714,18 +656,6 @@
     font-size: 14px;
     margin-top: 8px;
   }
-  .status {
-    font-size: 14px;
-    line-height: 1.4;
-    padding: 6px 10px;
-  }
-  .status.running {
-    color: var(--muted);
-    background: var(--surface-raised);
-  }
-  .catalog-table .status {
-    padding: 6px 10px;
-  }
   .mobile-works {
     display: none;
     list-style: none;
@@ -772,7 +702,7 @@
     font-size: 16px;
     font-variant-numeric: tabular-nums;
   }
-  .work-card .button {
+  .work-card .work-details-button {
     margin-top: 16px;
     width: 100%;
   }
@@ -809,25 +739,28 @@
   margin-top: 12px;
   max-width: 850px;
 }
-.pvh-module button,
-.pvh-module input,
-.pvh-module select {
+.pvh-module button:not([class*="mantine-"]),
+.pvh-module input:not([class*="mantine-"]),
+.pvh-module select:not([class*="mantine-"]) {
   font: inherit;
   color: inherit;
 }
-.pvh-module button,
+.pvh-module button:not([class*="mantine-"]),
 .pvh-module summary {
   cursor: pointer;
 }
-.pvh-module button:disabled {
+.pvh-module button:not([class*="mantine-"]):disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.pvh-module input,
-.pvh-module select {
+.pvh-module input:not([class*="mantine-"]),
+.pvh-module select:not([class*="mantine-"]) {
   min-width: 0;
 }
-.pvh-module :is(button, input, select, summary, [tabindex]):focus-visible {
+.pvh-module
+  :is(button, input, select, summary, [tabindex]):not(
+    [class*="mantine-"]
+  ):focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
@@ -905,8 +838,8 @@
   padding: 8px;
 }
 .pvh-module .pagination button[aria-current] {
-  background: var(--gold);
-  color: var(--deep);
+  background: var(--accent-fill);
+  color: var(--on-accent);
 }
 .pvh-module .paid-value {
   display: block;
@@ -923,7 +856,7 @@
 .pvh-module .percent-track > span {
   height: 100%;
   display: block;
-  background: var(--gold);
+  background: var(--accent-fill);
 }
 .pvh-module .table-footnote,
 .pvh-module .overview-note {
@@ -950,13 +883,17 @@
   color: var(--muted);
 }
 .pvh-module .notice.error {
-  border-color: #ac6b60;
+  border-color: var(--error-border);
+}
+.pvh-module .notice.error h2 {
+  color: var(--error-color);
 }
 .pvh-module .works-coverage-notice {
-  border-color: #716343;
-  border-left: 4px solid var(--gold);
+  border-color: var(--accent-border);
+  border-left: 4px solid var(--accent-fill);
   background: var(--surface);
   color: var(--ink);
+  margin-block: 24px;
 }
 .pvh-module .works-coverage-notice h2 {
   color: var(--gold-soft);
@@ -1072,7 +1009,7 @@
 .revenue-update p + p {
   margin-top: 0.5rem;
 }
-.revenue-update .button {
+.revenue-update .revenue-refresh-button {
   flex-shrink: 0;
 }
 
@@ -1082,12 +1019,12 @@
   gap: 1rem;
   flex-wrap: wrap;
 }
-.revenue-initial-filters label {
+.revenue-initial-filters label:not([class*="mantine-"]) {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
-.revenue-initial-filters input {
+.revenue-initial-filters input:not([class*="mantine-"]) {
   padding: 0.75rem 1rem;
   border: 1px solid var(--line);
   border-radius: 0.5rem;
@@ -1103,40 +1040,22 @@
 }
 
 /* Campos de consulta distinguíveis do painel, inclusive sem hover. */
-.pvh-module :is(.work-filter > span, .revenue-selects label, .revenue-sort) {
+.pvh-module .revenue-initial-filters label:not([class*="mantine-"]) {
   color: var(--ink);
   font-size: 14px;
   font-weight: 600;
 }
-.pvh-module
-  :is(
-    .work-filter select,
-    .work-sort select,
-    .revenue-selects select,
-    .revenue-sort select,
-    .revenue-initial-filters input
-  ) {
+.pvh-module .revenue-initial-filters input:not([class*="mantine-"]) {
   background-color: var(--deep);
   color: var(--ink);
-  border: 1px solid #817660;
+  border: 1px solid var(--field-border);
   min-height: 48px;
   font-size: 16px;
   font-weight: 400;
 }
-.pvh-module
-  :is(.work-filter, .work-sort, .revenue-selects, .revenue-sort)
-  select {
-  cursor: pointer;
-}
-.pvh-module
-  :is(.work-filter, .work-sort, .revenue-selects, .revenue-sort)
-  select:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
 .pvh-module :is(.work-search, .revenue-filters) .search-field {
   background: var(--deep);
-  border: 1px solid #817660;
+  border: 1px solid var(--field-border);
 }
 .pvh-module .revenue-filters .search-field:focus-within {
   outline: 2px solid var(--gold);
@@ -1148,7 +1067,7 @@
 }
 .pvh-module .more-filters summary {
   background: var(--surface-raised);
-  border-color: #817660;
+  border-color: var(--field-border);
   color: var(--gold-soft);
   font-weight: 600;
   min-height: 48px;
@@ -1156,13 +1075,13 @@
 @media (hover: hover) and (pointer: fine) {
   .pvh-module
     :is(
-      .work-filter select,
-      .work-sort select,
-      .revenue-selects select,
-      .revenue-sort select,
-      .revenue-initial-filters input,
+      .revenue-initial-filters input:not([class*="mantine-"]),
       .more-filters summary
     ):not(:disabled):hover {
     border-color: var(--gold-soft);
   }
+}
+
+.pvh-module .revenue-notice {
+  margin-block: 24px;
 }

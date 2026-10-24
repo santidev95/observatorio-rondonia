@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Scales, GitHub } from "@/features/shared/icons";
+import { ThemeToggle } from "./theme-toggle";
 
 export const repositoryUrl =
   "https://github.com/santidev95/observatorio-rondonia";
@@ -28,6 +29,7 @@ export function Header() {
             <small>Dados públicos, interesse coletivo.</small>
           </span>
         </Link>
+        <ThemeToggle />
       </div>
     </header>
   );

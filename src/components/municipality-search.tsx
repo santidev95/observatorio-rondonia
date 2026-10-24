@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { ActionIcon, TextInput } from "@mantine/core";
 import type { MapMunicipality } from "./municipal-map";
 import { Search, X } from "@/features/shared/icons";
 import { searchKey } from "@/features/shared/display";
@@ -28,34 +29,41 @@ export function MunicipalitySearch({
 
   return (
     <div className="municipality-search">
-      <label htmlFor="municipality-search">Buscar município</label>
-      <div className="municipality-search-field">
-        <Search size={20} />
-        <input
-          ref={input}
-          id="municipality-search"
-          type="search"
-          placeholder="Digite o nome do município"
-          autoComplete="off"
-          maxLength={100}
-          value={query}
-          aria-controls="municipality-search-results"
-          onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") clear();
-          }}
-        />
-        {query && (
-          <button
-            type="button"
-            aria-label="Limpar busca de município"
-            onClick={clear}
-          >
-            <X size={18} />
-          </button>
-        )}
-      </div>
-      <p className="sr-only" role="status">
+      <TextInput
+        ref={input}
+        id="municipality-search"
+        label="Buscar município"
+        type="search"
+        placeholder="Digite o nome do município"
+        autoComplete="off"
+        maxLength={100}
+        value={query}
+        aria-controls="municipality-search-results"
+        aria-describedby="municipality-search-status"
+        leftSection={<Search size={20} />}
+        leftSectionPointerEvents="none"
+        rightSectionWidth={48}
+        rightSectionPointerEvents="all"
+        rightSection={
+          query ? (
+            <ActionIcon
+              type="button"
+              variant="subtle"
+              color="gray"
+              size={44}
+              aria-label="Limpar busca de município"
+              onClick={clear}
+            >
+              <X size={18} />
+            </ActionIcon>
+          ) : null
+        }
+        onChange={(event) => setQuery(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") clear();
+        }}
+      />
+      <p id="municipality-search-status" className="sr-only" role="status">
         {term
           ? `${results.length} ${results.length === 1 ? "município encontrado" : "municípios encontrados"}.`
           : ""}

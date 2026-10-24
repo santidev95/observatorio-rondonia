@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@mantine/core";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { RevenueStatus } from "@/core/revenue-refresh";
@@ -128,14 +129,14 @@ export function RevenueRefreshStatus({
           </p>
         )}
       </div>
-      <button
+      <Button
         type="button"
-        className="button button-secondary"
+        className="revenue-refresh-button"
         disabled={pending}
         onClick={() => setRequest((n) => n + 1)}
       >
         Verificar atualização
-      </button>
+      </Button>
     </div>
   );
 }

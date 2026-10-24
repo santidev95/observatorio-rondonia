@@ -1,4 +1,12 @@
 "use client";
+import {
+  Alert,
+  Button,
+  NativeSelect,
+  Pagination,
+  Table,
+  TextInput,
+} from "@mantine/core";
 import { Search, X, ArrowUpRight, Download } from "@/features/shared/icons";
 import { currency, dateLabel, percentLabel } from "@/features/shared/display";
 import type { RevenueDashboardView } from "./dashboard-view";
@@ -43,98 +51,84 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
         aria-label="Filtros de receitas"
         aria-busy={pending}
       >
-        <label className="search-field">
-          <Search size={20} aria-hidden="true" />
-          <span className="sr-only">
-            Buscar receita, conta ou fonte de recurso
-          </span>
-          <input
-            type="search"
-            placeholder="Buscar receita, conta ou fonte de recurso..."
-            value={draft.q}
-            maxLength={200}
-            onChange={(e) => update({ q: e.target.value })}
-          />
-        </label>
+        <TextInput
+          aria-label="Buscar receita, conta ou fonte de recurso"
+          leftSection={<Search size={20} aria-hidden="true" />}
+          type="search"
+          placeholder="Buscar receita, conta ou fonte de recurso..."
+          value={draft.q}
+          maxLength={200}
+          onChange={(e) => update({ q: e.target.value })}
+        />
         <div className="revenue-selects">
-          <label>
-            Exercício
-            <select
-              value={filters.year}
-              disabled={pending}
-              onChange={(e) =>
-                update({ year: e.target.value, unit: "", category: "" })
-              }
-            >
-              {view.years.map((y) => (
-                <option key={y.year} value={y.year}>
-                  {y.year}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Unidade gestora
-            <select
-              value={filters.unit}
-              disabled={pending}
-              onChange={(e) => update({ unit: e.target.value })}
-            >
-              <option value="">Todas as unidades</option>
-              {units.map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Tipo de receita
-            <select
-              value={filters.kind}
-              disabled={pending}
-              onChange={(e) => update({ kind: e.target.value, category: "" })}
-            >
-              <option value="budget">Orçamentária</option>
-              {!annual && (
-                <>
-                  <option value="extra">Extraorçamentária</option>
-                  <option value="unknown">Tipo não informado</option>
-                </>
-              )}
-            </select>
-          </label>
-          <label>
-            Categoria
-            <select
-              value={filters.category}
-              disabled={pending}
-              onChange={(e) => update({ category: e.target.value })}
-            >
-              <option value="">Todas as categorias</option>
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {shortLabel(c)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <NativeSelect
+            label="Exercício"
+            value={filters.year}
+            disabled={pending}
+            onChange={(e) =>
+              update({ year: e.target.value, unit: "", category: "" })
+            }
+          >
+            {view.years.map((y) => (
+              <option key={y.year} value={y.year}>
+                {y.year}
+              </option>
+            ))}
+          </NativeSelect>
+          <NativeSelect
+            label="Unidade gestora"
+            value={filters.unit}
+            disabled={pending}
+            onChange={(e) => update({ unit: e.target.value })}
+          >
+            <option value="">Todas as unidades</option>
+            {units.map(([id, name]) => (
+              <option key={id} value={id}>
+                {name}
+              </option>
+            ))}
+          </NativeSelect>
+          <NativeSelect
+            label="Tipo de receita"
+            value={filters.kind}
+            disabled={pending}
+            onChange={(e) => update({ kind: e.target.value, category: "" })}
+          >
+            <option value="budget">Orçamentária</option>
+            {!annual && (
+              <>
+                <option value="extra">Extraorçamentária</option>
+                <option value="unknown">Tipo não informado</option>
+              </>
+            )}
+          </NativeSelect>
+          <NativeSelect
+            label="Categoria"
+            value={filters.category}
+            disabled={pending}
+            onChange={(e) => update({ category: e.target.value })}
+          >
+            <option value="">Todas as categorias</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {shortLabel(c)}
+              </option>
+            ))}
+          </NativeSelect>
           {!annual && (
-            <label>
-              Período da arrecadação
-              <select
-                value={filters.month}
-                disabled={pending}
-                onChange={(e) => update({ month: e.target.value })}
-              >
-                <option value="">Todos os meses publicados</option>
-                {monthNames.map((m, i) => (
-                  <option key={m} value={i + 1}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <NativeSelect
+              label="Período da arrecadação"
+              value={filters.month}
+              disabled={pending}
+              onChange={(e) => update({ month: e.target.value })}
+            >
+              <option value="">Todos os meses publicados</option>
+              {monthNames.map((m, i) => (
+                <option key={m} value={i + 1}>
+                  {m}
+                </option>
+              ))}
+            </NativeSelect>
           )}
         </div>
         <div className="revenue-filter-footer">
@@ -144,13 +138,12 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
               : "Portal da Prefeitura e suas unidades · IPAM e Câmara fora deste recorte"}
           </span>
           {revenueFilterQuery(filters, latestYear) && (
-            <button
-              className="button button-secondary"
+            <Button
+              leftSection={<X size={14} aria-hidden="true" />}
               onClick={() => update(revenueDefaults(latestYear))}
             >
-              <X size={14} aria-hidden="true" />
               Limpar filtros
-            </button>
+            </Button>
           )}
         </div>
       </section>
@@ -174,9 +167,9 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
         <span>Consulta em {dateLabel(view.generatedAt)}</span>
       </div>
       {view.warnings.map((warning) => (
-        <p key={warning} className="notice" role="status">
+        <Alert key={warning} className="revenue-notice" role="status">
           {warning}
-        </p>
+        </Alert>
       ))}
       {annual ? (
         <section className="revenue-metrics" aria-label="Cobertura do recorte">
@@ -236,20 +229,20 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
         </section>
       )}
       {(totals.missing > 0 || totals.missingPlanned > 0) && (
-        <div className="notice" role="status">
+        <Alert className="revenue-notice" role="status">
           Há {totals.missing} {annual ? "rubricas" : "documentos"} e{" "}
           {totals.missingPlanned} previsões sem valor válido.{" "}
           {annual
             ? "Os campos ausentes permanecem indisponíveis, sem serem convertidos em zero."
             : "As somas têm cobertura parcial; o percentual não é calculado."}
-        </div>
+        </Alert>
       )}
       {filters.kind !== "budget" && (
-        <div className="notice">
+        <Alert className="revenue-notice" role="status">
           Entradas extraorçamentárias e tipos não informados são apresentados
           separadamente da receita orçamentária. Não são comparados à previsão
           anual.
-        </div>
+        </Alert>
       )}
       {!annual && (
         <section
@@ -307,23 +300,22 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
                 : "A previsão é anual. A arrecadação acompanha o período escolhido."}
             </p>
           </div>
-          <label className="revenue-sort">
-            Ordenar por
-            <select
-              value={filters.sort}
-              disabled={pending}
-              onChange={(e) => update({ sort: e.target.value })}
-            >
-              <option value="realized">Maior valor registrado</option>
-              <option value="planned">Maior previsão anual</option>
-              <option value="account">Conta, de A a Z</option>
-            </select>
-          </label>
+          <NativeSelect
+            className="revenue-sort"
+            label="Ordenar por"
+            value={filters.sort}
+            disabled={pending}
+            onChange={(e) => update({ sort: e.target.value })}
+          >
+            <option value="realized">Maior valor registrado</option>
+            <option value="planned">Maior previsão anual</option>
+            <option value="account">Conta, de A a Z</option>
+          </NativeSelect>
         </div>
         {!count ? (
-          <p className="notice" role="status">
+          <Alert className="revenue-notice" role="status">
             Nenhuma receita encontrada para estes filtros.
-          </p>
+          </Alert>
         ) : (
           <div
             className="revenue-table-scroll"
@@ -331,25 +323,25 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
             role="region"
             aria-label="Tabela de receitas com rolagem horizontal"
           >
-            <table className="revenue-table">
-              <thead>
-                <tr>
-                  <th scope="col">Conta e fonte de recurso</th>
-                  <th scope="col">Unidade gestora</th>
-                  <th scope="col">Previsão anual</th>
-                  <th scope="col">
+            <Table className="revenue-table">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th scope="col">Conta e fonte de recurso</Table.Th>
+                  <Table.Th scope="col">Unidade gestora</Table.Th>
+                  <Table.Th scope="col">Previsão anual</Table.Th>
+                  <Table.Th scope="col">
                     {annual
                       ? "Arrecadado informado no ano"
                       : "Registrado no período"}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
                 {view.rows.map((e) => {
                   const received = e.received;
                   return (
-                    <tr key={e.id}>
-                      <th scope="row">
+                    <Table.Tr key={e.id}>
+                      <Table.Th scope="row">
                         <strong>{e.account}</strong>
                         <small>{e.fundingSource}</small>
                         <details>
@@ -375,24 +367,24 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
                             </a>
                           )}
                         </details>
-                      </th>
-                      <td>{e.unitName}</td>
-                      <td className="revenue-money">
+                      </Table.Th>
+                      <Table.Td>{e.unitName}</Table.Td>
+                      <Table.Td className="revenue-money">
                         {e.kind === "budget"
                           ? currency(e.plannedCents)
                           : "Não se aplica"}
-                      </td>
-                      <td className="revenue-money">
+                      </Table.Td>
+                      <Table.Td className="revenue-money">
                         {currency(received.cents)}
                         {!received.documents && (
                           <small>Sem documentos no período</small>
                         )}
-                      </td>
-                    </tr>
+                      </Table.Td>
+                    </Table.Tr>
                   );
                 })}
-              </tbody>
-            </table>
+              </Table.Tbody>
+            </Table>
           </div>
         )}
         <div className="revenue-pagination">
@@ -400,31 +392,43 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
             {count.toLocaleString("pt-BR")} contas e fontes · Página {page} de{" "}
             {pages}
           </span>
-          <div>
-            <button
-              className="button button-secondary"
-              disabled={pending || page === 1}
-              onClick={() => changePage(page - 1)}
-            >
-              Anterior
-            </button>
-            <button
-              className="button button-secondary"
-              disabled={pending || page === pages}
-              onClick={() => changePage(page + 1)}
-            >
-              Próxima
-            </button>
-          </div>
+          <nav aria-label="Paginação de receitas">
+            <Pagination
+              total={pages}
+              value={page}
+              disabled={pending}
+              onChange={changePage}
+              getItemProps={(number) => ({ "aria-label": `Página ${number}` })}
+              getControlProps={(control) => ({
+                "aria-label": {
+                  first: "Primeira página",
+                  previous: "Página anterior",
+                  next: "Próxima página",
+                  last: "Última página",
+                }[control],
+              })}
+            />
+          </nav>
         </div>
       </section>
       <div className="revenue-source-links">
-        <a href={sourceHref} target="_blank" rel="noopener noreferrer">
-          Consultar dados na API <ArrowUpRight size={15} />
-        </a>
-        <a href={`/api/${municipality}/receitas?ano=${filters.year}`} download>
-          Baixar os resumos em JSON <Download size={15} />
-        </a>
+        <Button
+          component="a"
+          href={sourceHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          rightSection={<ArrowUpRight size={15} aria-hidden="true" />}
+        >
+          Consultar dados na API
+        </Button>
+        <Button
+          component="a"
+          href={`/api/${municipality}/receitas?ano=${filters.year}`}
+          download
+          rightSection={<Download size={15} aria-hidden="true" />}
+        >
+          Baixar os resumos em JSON
+        </Button>
       </div>
     </>
   );

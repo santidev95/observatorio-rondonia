@@ -20,6 +20,8 @@ Veja [fontes e interação do mapa municipal](mapa-municipal.md) e [Contratos de
 4. **Leitura no servidor**: `src/lib/`, protegida com `server-only`.
 5. **Apresentação**: páginas e componentes, sem regras específicas de APIs.
 
+A apresentação usa Mantine para controles, cartões, avisos, tabelas e paginação. O layout mantém a composição no servidor e envolve os elementos com `PortalProvider`, um limite cliente com temas claro e escuro e paleta amarela centralizada em `src/theme/`. O seletor do cabeçalho usa o gerenciador de cores do Mantine, com preferência persistida no navegador; `ColorSchemeScript` e provider compartilham o padrão escuro. Os links polimórficos com Next.js ficam em componentes cliente; leituras, conectores e segredos continuam exclusivamente no servidor. A migração visual preserva os contratos normalizados, filtros, IDs e regras de cobertura e cache.
+
 O contrato público de Contratos preserva IDs, centavos, ausentes, datas e documentos, com minimização de CPF. O contrato inicial `MunicipalConnector` e a função `snapshotKey` permanecem preparações para uma futura coleta completa; não são o fluxo de consulta paginada atual.
 
 Os conectores Pública compartilham algoritmos em `src/connectors/publica/`; os wrappers em `ji-parana/` e `ariquemes/` preservam suas interfaces. `publicaSource` define host e UG por município, e `publicaTransport` mantém transporte e limitador separados. Compartilhar a plataforma não torna as unidades gestoras intercambiáveis: Ji-Paraná usa 2, Ariquemes usa 1.

@@ -72,11 +72,11 @@
 }
 .contracts-catalog .search-panel {
   background: var(--surface);
-  border: 1px solid #716343;
-  border-top: 3px solid var(--gold);
+  border: 1px solid var(--accent-border);
+  border-top: 3px solid var(--accent-fill);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 4px 6px -1px #0002;
+  box-shadow: var(--shadow);
   margin-bottom: 24px;
 }
 .contracts-catalog .filters-heading {
@@ -86,64 +86,8 @@
   font-weight: 600;
   line-height: 24px;
 }
-.contracts-catalog button,
-.contracts-catalog input,
-.contracts-catalog select {
-  font: inherit;
-  color: inherit;
-}
-.contracts-catalog button {
-  cursor: pointer;
-  border: 0;
-}
-.contracts-catalog button:disabled,
-.contracts-catalog select:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-.contracts-catalog .search-field {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0 16px;
-  border-radius: 12px;
-  background: var(--deep);
-  border: 1px solid #817660;
-  min-height: 56px;
-}
-.contracts-catalog .search-field svg {
-  flex: none;
+.contracts-catalog .contract-search svg {
   color: var(--gold-soft);
-}
-.contracts-catalog .search-field:focus-within {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
-  border-color: var(--gold);
-}
-.contracts-catalog .search-field input:focus-visible {
-  outline: none;
-}
-.contracts-catalog .search-field input::placeholder {
-  color: var(--muted);
-  opacity: 1;
-}
-.contracts-catalog .search-field kbd {
-  font-family: inherit;
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 24px;
-  padding: 2px 8px;
-  background: var(--surface-raised);
-  border-radius: 4px;
-  white-space: nowrap;
-}
-.contracts-catalog .search-field input {
-  background: transparent;
-  border: 0;
-  width: 100%;
-  height: 48px;
-  min-width: 0;
-  font-size: 15px;
 }
 .contracts-catalog .filter-row {
   display: flex;
@@ -161,60 +105,15 @@
   width: 100%;
 }
 .contracts-catalog .select-wrap {
-  display: flex;
-  flex-direction: column;
   flex: 1 1 180px;
-  gap: 8px;
   min-width: 0;
 }
 .contracts-catalog .select-wrap:first-child {
   flex: 0 1 160px;
 }
-.contracts-catalog .filter-label {
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-}
-.contracts-catalog .select-wrap select,
-.contracts-catalog .sort-select select {
-  appearance: none;
-  border: 1px solid #817660;
-  background-color: var(--deep);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f2c230' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  border-radius: 8px;
-  color: var(--ink);
-  font-size: 16px;
-  padding: 10px 40px 10px 12px;
-  min-height: 48px;
-  cursor: pointer;
-}
-.contracts-catalog .select-wrap select {
-  width: 100%;
-}
 .contracts-catalog select[data-active="true"] {
   border-color: var(--gold);
-  background-color: #302a1a;
-}
-.contracts-catalog select:focus-visible {
-  border-color: var(--gold);
-}
-.contracts-catalog :is(.select-wrap, .sort-select) select:disabled {
-  cursor: not-allowed;
-}
-.contracts-catalog .clear-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--surface-raised);
-  border: 1px solid #817660;
-  color: var(--ink);
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  min-height: 48px;
+  background-color: var(--accent-surface);
 }
 .contracts-catalog .results-bar {
   display: flex;
@@ -238,15 +137,10 @@
   height: 6px;
   flex: none;
   border-radius: 50%;
-  background: var(--gold);
+  background: var(--accent-fill);
 }
 .contracts-catalog .sort-select {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 600;
+  min-width: 240px;
 }
 .contracts-catalog .filter-scope {
   margin: 8px 0 0;
@@ -317,7 +211,7 @@
 .contracts-catalog .contracts-table tbody th,
 .contracts-catalog .contracts-table tbody td {
   padding: 24px 20px;
-  border-bottom: 1px solid #ffffff0a;
+  border-bottom: 1px solid var(--line);
   overflow-wrap: anywhere;
   line-height: 22px;
 }
@@ -362,29 +256,24 @@
   margin-top: 6px;
 }
 .contracts-catalog .contract-status {
-  display: inline-block;
   max-width: 100%;
-  padding: 6px 10px;
-  background: var(--surface-raised);
-  border-radius: 8px;
+  height: auto;
+  padding-block: 6px;
   font-size: 14px;
+  font-weight: 500;
   line-height: 18px;
+  text-transform: none;
+  white-space: normal;
+}
+.contracts-catalog .contract-status > span {
+  white-space: normal;
+  overflow: visible;
 }
 .contracts-catalog .money {
   font-family: inherit;
   font-variant-numeric: tabular-nums;
   font-size: 15px;
   white-space: nowrap;
-}
-.contracts-catalog .row-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: var(--surface-raised);
-  width: 40px;
-  height: 40px;
-  padding: 0;
 }
 .contracts-catalog .pagination-footer {
   display: flex;
@@ -401,17 +290,6 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-}
-.contracts-catalog .pagination-buttons > a,
-.contracts-catalog .pagination-buttons > .is-disabled {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 12px;
-  min-height: 40px;
-  background: var(--surface-raised);
-}
-.contracts-catalog .pagination-buttons > .is-disabled {
-  opacity: 0.4;
 }
 .contracts-catalog .overview-note {
   margin: 12px 0 0;
@@ -453,8 +331,8 @@
 .contracts-catalog .contracts-source-warnings {
   margin-bottom: 24px;
   padding: 14px 16px;
-  border: 1px solid #65532a;
-  border-left: 3px solid var(--gold);
+  border: 1px solid var(--accent-border);
+  border-left: 3px solid var(--accent-fill);
   border-radius: 6px;
   color: var(--gold-soft);
   font-size: 12px;
@@ -487,28 +365,12 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .contracts-catalog
-    :is(.select-wrap, .sort-select)
-    select:not(:disabled):hover,
-  .contracts-catalog .clear-button:not(:disabled):hover,
-  .contracts-catalog .search-field:hover {
-    border-color: var(--gold-soft);
-  }
-  .contracts-catalog a:hover {
+    a:not(.mantine-Button-root):not(.contract-row-action):hover {
     text-decoration: underline;
     text-underline-offset: 4px;
   }
   .contracts-catalog .contracts-table tbody tr:hover {
-    background: #282725;
-  }
-  .contracts-catalog .row-button:hover {
-    background: #353534;
-    text-decoration: none;
-  }
-}
-@media (pointer: coarse) {
-  .contracts-catalog
-    :is(input, select, .select-wrap select, .sort-select select) {
-    font-size: 16px;
+    background: var(--row-hover);
   }
 }
 @media (max-width: 700px) {
@@ -537,16 +399,6 @@
   .contracts-catalog .search-panel {
     padding: 12px;
   }
-  .contracts-catalog .search-field {
-    padding-inline: 12px;
-    gap: 10px;
-  }
-  .contracts-catalog .search-field input {
-    font-size: 16px;
-  }
-  .contracts-catalog .search-field kbd {
-    display: none;
-  }
   .contracts-catalog .filter-selects {
     width: 100%;
   }
@@ -557,20 +409,10 @@
   .contracts-catalog .select-wrap:first-child {
     flex-basis: 100%;
   }
-  .contracts-catalog .select-wrap select {
-    font-size: 16px;
-    padding-left: 12px;
-  }
   .contracts-catalog .results-bar {
     margin-top: 16px;
   }
   .contracts-catalog .sort-select {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    width: 100%;
-  }
-  .contracts-catalog .sort-select select {
     width: 100%;
     min-width: 0;
   }

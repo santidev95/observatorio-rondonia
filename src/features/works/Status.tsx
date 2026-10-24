@@ -1,15 +1,21 @@
+import { Badge } from "@mantine/core";
+
 export function Status({ value }: { value: string }) {
-  const style = /finalizada|concluída/i.test(value)
-    ? "finished"
+  const color = /finalizada|concluída/i.test(value)
+    ? "green"
     : /andamento/i.test(value)
-      ? "running"
+      ? "brand"
       : /rescis/i.test(value)
-        ? "closed"
-        : "unknown";
+        ? "red"
+        : "gray";
   return (
-    <span className={`status ${style}`}>
-      <span />
+    <Badge
+      className="work-status"
+      color={color}
+      variant="light"
+      leftSection={<span className="work-status-dot" aria-hidden="true" />}
+    >
       {value}
-    </span>
+    </Badge>
   );
 }
