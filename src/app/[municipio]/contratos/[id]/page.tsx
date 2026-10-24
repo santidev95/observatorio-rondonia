@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
+import { ContractsDataError, isContractId } from "@/core/contracts-query";
 import {
-  ContractsDataError,
-  isContractId,
-  parseContractsQuery,
-} from "@/core/contracts-query";
-import { portoVelhoSource } from "@/connectors/porto-velho/definition";
+  dataMunicipality,
+  isMunicipalContractId,
+} from "@/core/municipal-sources";
 import {
   formatContractCnpj,
   formatContractDate,
@@ -15,6 +14,8 @@ import {
   formatConsultationTime,
 } from "@/features/contracts/format";
 import { CacheNotice } from "@/features/contracts/CacheNotice";
+import { contractsReturnUrl } from "@/features/contracts/navigation";
+import { ModuleNavigation } from "@/features/shared/ModuleNavigation";
 import { getContract } from "@/lib/contracts";
 import "./detail.css";
 
@@ -25,33 +26,29 @@ type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const catalogUrl = "/porto-velho/contratos";
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { municipio, id } = await params;
-  if (municipio !== "porto-velho" || !isContractId(id)) notFound();
+  const city = dataMunicipality(municipio);
+  if (!city || !isContractId(id) || !isMunicipalContractId(id, city.slug))
+    notFound();
   return {
-    title: "Contrato " + id + " · Porto Velho",
-    description:
-      "Registro de contrato publicado pela Prefeitura de Porto Velho.",
+    title: "Contrato " + id + " · " + city.name,
+    description: `Registro de contrato publicado pela Prefeitura de ${city.name}.`,
   };
 }
 
-function backToCatalog(search: Record<string, unknown>): string {
-  try {
-    const query = parseContractsQuery(search);
-    const context = new URLSearchParams();
-    if (search.page !== undefined) context.set("page", String(query.page));
-    if (query.year !== null) context.set("ano", String(query.year));
-    return catalogUrl + (context.size ? "?" + context.toString() : "");
-  } catch {
-    return catalogUrl;
-  }
-}
-
-function UnavailableContract({ id, backUrl }: { id: string; backUrl: string }) {
+function UnavailableContract({
+  id,
+  backUrl,
+  city,
+}: {
+  id: string;
+  backUrl: string;
+  city: NonNullable<ReturnType<typeof dataMunicipality>>;
+}) {
   return (
     <main id="conteudo" className="container contract-detail-page">
+      <ModuleNavigation active="contratos" municipality={city.slug} />
       <Link
         href={backUrl}
         prefetch={false}
@@ -59,7 +56,9 @@ function UnavailableContract({ id, backUrl }: { id: string; backUrl: string }) {
       >
         ← Todos os contratos
       </Link>
-      <p className="eyebrow">PORTO VELHO / CONTRATO MUNICIPAL</p>
+      <p className="eyebrow">
+        {city.name.toLocaleUpperCase("pt-BR")} / CONTRATO MUNICIPAL
+      </p>
       <h1 className="contract-detail-title">Contrato {id}</h1>
       <section className="contract-detail-unavailable" role="status">
         <h2>Consulta indisponível</h2>
@@ -69,7 +68,7 @@ function UnavailableContract({ id, backUrl }: { id: string; backUrl: string }) {
         </p>
         <a
           className="text-link"
-          href={portoVelhoSource.url}
+          href={city.contracts}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -85,16 +84,18 @@ export default async function ContractDetailPage({
   searchParams,
 }: Props) {
   const { municipio, id } = await params;
-  if (municipio !== "porto-velho" || !isContractId(id)) notFound();
+  const city = dataMunicipality(municipio);
+  if (!city || !isContractId(id) || !isMunicipalContractId(id, city.slug))
+    notFound();
   await connection();
 
-  const backUrl = backToCatalog(await searchParams);
+  const backUrl = contractsReturnUrl(await searchParams, city.slug, id);
   let result: Awaited<ReturnType<typeof getContract>>;
   try {
-    result = await getContract(id);
+    result = await getContract(id, city.slug);
   } catch (error) {
     if (!(error instanceof ContractsDataError)) throw error;
-    return <UnavailableContract id={id} backUrl={backUrl} />;
+    return <UnavailableContract id={id} backUrl={backUrl} city={city} />;
   }
   if (result.data === null) notFound();
   const contract = result.data;
@@ -116,11 +117,15 @@ export default async function ContractDetailPage({
           ? "Sim"
           : "Não",
     ],
-    ["ID oficial", contract.id],
+    ["ID oficial", contract.sourceId ?? contract.id],
+    ...(contract.sourceYear === undefined
+      ? []
+      : [["Exercício solicitado", String(contract.sourceYear)]]),
   ];
 
   return (
     <main id="conteudo" className="container contract-detail-page">
+      <ModuleNavigation active="contratos" municipality={city.slug} />
       <Link
         href={backUrl}
         prefetch={false}
@@ -131,7 +136,9 @@ export default async function ContractDetailPage({
       <header className="contract-detail-heading">
         <div className="contract-detail-intro">
           <div className="contract-detail-kicker">
-            <p className="eyebrow">CONTRATO MUNICIPAL · PORTO VELHO</p>
+            <p className="eyebrow">
+              CONTRATO MUNICIPAL · {city.name.toLocaleUpperCase("pt-BR")}
+            </p>
             <span>
               {contract.department ??
                 contract.departmentName ??

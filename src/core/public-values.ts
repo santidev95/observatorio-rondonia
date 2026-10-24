@@ -24,7 +24,11 @@ export const municipalUrl = z.url().refine((s) => {
       !u.password &&
       !u.port &&
       (u.hostname === "portovelho.ro.gov.br" ||
-        u.hostname.endsWith(".portovelho.ro.gov.br")) &&
+        u.hostname.endsWith(".portovelho.ro.gov.br") ||
+        u.hostname === "ji-parana.ro.gov.br" ||
+        u.hostname.endsWith(".ji-parana.ro.gov.br") ||
+        u.hostname === "ariquemes.ro.gov.br" ||
+        u.hostname.endsWith(".ariquemes.ro.gov.br")) &&
       !containsPersonalDocument(d) &&
       ![...u.searchParams.keys()].some((k) => /cpf/i.test(k))
     );

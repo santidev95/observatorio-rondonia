@@ -35,7 +35,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function MunicipalityPage({ params }: Props) {
   const city = getMunicipality((await params).municipio);
   if (!city) notFound();
-  const portoVelho = city.slug === "porto-velho";
+  const integrated = Object.values(city.modules).some(
+    (module) => module.status === "available",
+  );
   return (
     <main id="conteudo" className="container municipality-page">
       <Link href="/#municipios" className="back-link">
@@ -51,11 +53,11 @@ export default async function MunicipalityPage({ params }: Props) {
       </p>
       <h1>{city.name}</h1>
       <p className="page-description">
-        {portoVelho
-          ? "Obras, contratos e receitas de Porto Velho, com acesso às fontes oficiais."
+        {integrated
+          ? `Obras, contratos e receitas de ${city.name}, com acesso às fontes oficiais e limites de cobertura por módulo.`
           : city.description}
       </p>
-      {!portoVelho && (
+      {!integrated && (
         <div className="project-notice">
           <span className="notice-label">DADOS AINDA INDISPONÍVEIS</span>
           <p>
@@ -70,7 +72,7 @@ export default async function MunicipalityPage({ params }: Props) {
       <section className="section" aria-labelledby="modulos-titulo">
         <div className="section-heading">
           <h2 id="modulos-titulo">Módulos e cobertura</h2>
-          {portoVelho && (
+          {integrated && (
             <p>Escolha uma consulta para explorar os dados da Prefeitura.</p>
           )}
         </div>
@@ -78,7 +80,7 @@ export default async function MunicipalityPage({ params }: Props) {
           {moduleIds.map((id) => {
             const Icon = modulePresentation[id].icon;
             const available =
-              portoVelho && city.modules[id].status === "available";
+              integrated && city.modules[id].status === "available";
             return (
               <article className="module-card" key={id}>
                 <div className="module-card-top">
@@ -101,7 +103,7 @@ export default async function MunicipalityPage({ params }: Props) {
                 </p>
                 {available && (
                   <Link
-                    href={"/porto-velho/" + id}
+                    href={"/" + city.slug + "/" + id}
                     prefetch={false}
                     className="module-action"
                   >
@@ -113,7 +115,7 @@ export default async function MunicipalityPage({ params }: Props) {
             );
           })}
         </div>
-        {portoVelho && (
+        {integrated && (
           <p className="module-coverage-note">
             A disponibilidade depende das fontes oficiais. Cada consulta informa
             sua cobertura e data de atualização.
@@ -122,7 +124,7 @@ export default async function MunicipalityPage({ params }: Props) {
       </section>
       <section className="contribution-panel">
         <h2>
-          {portoVelho
+          {integrated
             ? "Ajude a melhorar o Observatório."
             : "Ajude a construir esta integração."}
         </h2>

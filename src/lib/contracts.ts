@@ -19,6 +19,13 @@ import {
   fetchPortoVelhoContractsPage,
   fetchPortoVelhoContract,
 } from "../connectors/porto-velho/contracts";
+import { createPublicaContracts } from "../connectors/publica/contracts";
+import {
+  isMunicipalContractId,
+  municipalContractsQuery,
+  publicaMunicipalities,
+  type DataMunicipality,
+} from "../core/municipal-sources";
 
 const readContracts = createCachedContractsReader({
   read: createContractsReader({ load: fetchPortoVelhoContractsPage }),
@@ -28,15 +35,55 @@ const readContract = createCachedContractReader({
   read: createContractReader({ load: fetchPortoVelhoContract }),
   cache: getContractsCache,
 });
+const publicaReaders = new Map(
+  publicaMunicipalities.map((municipality) => {
+    const connector = createPublicaContracts(municipality);
+    return [
+      municipality,
+      {
+        page: createCachedContractsReader({
+          read: createContractsReader({
+            load: connector.fetchPage,
+            timeoutMs: 30_000,
+          }),
+          cache: getContractsCache,
+          municipality,
+        }),
+        detail: createCachedContractReader({
+          read: createContractReader({
+            load: connector.fetchContract,
+            timeoutMs: 90_000,
+          }),
+          cache: getContractsCache,
+          municipality,
+        }),
+      },
+    ] as const;
+  }),
+);
 
-export async function getContracts(query: ContractsQuery) {
-  const validated = normalizeContractsQuery(query);
+export async function getContracts(
+  query: ContractsQuery,
+  municipality: DataMunicipality = "porto-velho",
+) {
+  const validated = municipalContractsQuery(
+    normalizeContractsQuery(query),
+    municipality,
+  );
   await connection();
-  return readContracts(validated);
+  return municipality === "porto-velho"
+    ? readContracts(validated)
+    : publicaReaders.get(municipality)!.page(validated);
 }
 
-export async function getContract(id: string) {
-  if (!isContractId(id)) throw new ContractsDataError("invalid-query");
+export async function getContract(
+  id: string,
+  municipality: DataMunicipality = "porto-velho",
+) {
+  if (!isContractId(id) || !isMunicipalContractId(id, municipality))
+    throw new ContractsDataError("invalid-query");
   await connection();
-  return readContract(id);
+  return municipality === "porto-velho"
+    ? readContract(id)
+    : publicaReaders.get(municipality)!.detail(id);
 }

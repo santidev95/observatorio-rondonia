@@ -6,6 +6,12 @@ import { readSource } from "../core/contracts-reader";
 import { getContractsCache } from "./redis";
 import { fetchWorks } from "../connectors/porto-velho/works";
 import { getContract } from "./contracts";
+import { createPublicaWorks } from "../connectors/publica/works";
+import {
+  municipalYear,
+  publicaSource,
+  type DataMunicipality,
+} from "../core/municipal-sources";
 const readWorks = createCachedWorksReader({
   cache: getContractsCache,
   read: () =>
@@ -62,7 +68,35 @@ const readWorks = createCachedWorksReader({
       { timeoutMs: 90_000 },
     ),
 });
-export async function getWorks() {
+const publicaReaders = new Map<
+  string,
+  ReturnType<typeof createCachedWorksReader>
+>();
+export async function getWorks(
+  municipality: DataMunicipality = "porto-velho",
+  year = municipalYear(),
+) {
   await connection();
+  if (municipality !== "porto-velho") {
+    if (!Number.isInteger(year) || year < 2000 || year > 2100)
+      throw new Error("Exercício inválido");
+    const key = `${municipality}:${year}`;
+    let reader = publicaReaders.get(key);
+    if (!reader) {
+      const source = publicaSource(municipality);
+      const connector = createPublicaWorks(municipality);
+      reader = createCachedWorksReader({
+        cache: getContractsCache,
+        cacheKey: `observatorio:RO:${municipality}:obras:v1:year:${year}:catalog`,
+        sourceUrl: `${source.apiOrigin}/api/obras/${year}/${source.company}`,
+        read: () =>
+          readSource((signal) => connector.fetchWorks(signal, year), {
+            timeoutMs: 90_000,
+          }),
+      });
+      publicaReaders.set(key, reader);
+    }
+    return reader();
+  }
   return readWorks();
 }

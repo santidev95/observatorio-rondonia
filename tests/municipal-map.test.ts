@@ -47,9 +47,21 @@ test("geometria gerada conserva os caminhos da origem e sua identificação", ()
   );
   assert.equal(geography.transform, "scale(0.0001,-0.0001)");
 });
-test("municípios fora do piloto e da proposta não são anunciados como integrações planejadas ou disponíveis", () => {
+test("Porto Velho, Ji-Paraná e Ariquemes são pilotos e os outros 49 municípios permanecem não iniciados", () => {
   assert.equal(getMunicipality("porto-velho")?.stage, "pilot");
-  assert.equal(getMunicipality("ji-parana")?.stage, "planned");
+  assert.equal(getMunicipality("ji-parana")?.stage, "pilot");
+  assert.equal(getMunicipality("ariquemes")?.stage, "pilot");
+  assert.deepEqual(
+    listMunicipalities()
+      .filter((city) => city.stage === "pilot")
+      .map((city) => city.slug)
+      .sort(),
+    ["ariquemes", "ji-parana", "porto-velho"],
+  );
+  assert.equal(
+    listMunicipalities().filter((city) => city.stage === "planned").length,
+    0,
+  );
   assert.equal(getMunicipality("cacoal")?.stage, "not-started");
   assert.equal(
     getMunicipality("alta-floresta-d-oeste")?.name,
@@ -57,7 +69,7 @@ test("municípios fora do piloto e da proposta não são anunciados como integra
   );
   assert.equal(
     listMunicipalities().filter((city) => city.stage === "not-started").length,
-    50,
+    49,
   );
   for (const city of listMunicipalities().filter(
     (city) => city.stage === "not-started",

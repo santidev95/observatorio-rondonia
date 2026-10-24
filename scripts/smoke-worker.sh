@@ -2,6 +2,7 @@
 set -euo pipefail
 image=$1
 [[ $image =~ ^ghcr.io/santidev95/observatorio-rondonia:sha-[a-f0-9]{40}$ ]]
+revision=${image##*:sha-}
 network=observatorio-worker-smoke
 cleanup() {
   docker rm -f observatorio-worker-smoke >/dev/null 2>&1 || true
@@ -16,7 +17,7 @@ docker run --detach --name observatorio-worker-smoke --network "$network" --read
   --env REDIS_URL=redis://redis-test:6379 --env "REDIS_PASSWORD=$TEST_REDIS_PASSWORD" "$image" node revenues-worker.cjs
 for attempt in $(seq 1 30); do
   if docker exec observatorio-worker-smoke node revenues-worker.cjs --healthcheck; then
-    node --import tsx scripts/seed-worker-smoke.ts --verify
+    node --import tsx scripts/seed-worker-smoke.ts --verify --revision "$revision"
     exit 0
   fi
   sleep 2

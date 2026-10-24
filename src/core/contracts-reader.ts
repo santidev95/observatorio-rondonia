@@ -4,6 +4,7 @@ import {
   isContractId,
 } from "./contracts-query";
 import type { ContractPage, ContractRecord, ContractsQuery } from "./contracts";
+import { MunicipalSourceError } from "./municipal-source-error";
 
 export type ContractsResult = { data: ContractPage; fetchedAt: string };
 export type ContractResult = { data: ContractRecord | null; fetchedAt: string };
@@ -30,8 +31,9 @@ export async function readSource<T>(
       data,
       fetchedAt: new Date((options.now ?? Date.now)()).toISOString(),
     };
-  } catch {
+  } catch (error) {
     controller.abort();
+    if (error instanceof MunicipalSourceError) throw error;
     throw new ContractsDataError("source-unavailable");
   } finally {
     if (timer !== undefined) clearTimeout(timer);

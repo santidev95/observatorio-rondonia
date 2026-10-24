@@ -81,6 +81,15 @@ export function filterRevenueEntries(
 }
 export function periodValue(entry: RevenueEntry, month = "") {
   const total = { cents: null as number | null, documents: 0, missing: 0 };
+  if (entry.annual) {
+    return month
+      ? total
+      : {
+          cents: entry.annual.cents,
+          documents: entry.annual.records,
+          missing: entry.annual.missingValues,
+        };
+  }
   for (const record of entry.months) {
     if (month && String(record.month) !== month) continue;
     if (record.cents !== null)
@@ -101,6 +110,7 @@ export function monthlyRevenueTotals(entries: RevenueEntry[]) {
   }));
   // Percorre os documentos uma vez, em vez de filtrar toda a base por mes.
   for (const entry of entries) {
+    if (entry.annual) continue;
     if (entry.plannedCents !== null)
       plannedCents = sum(plannedCents ?? 0, entry.plannedCents);
     missingPlanned += entry.missingPlannedValues;
@@ -132,12 +142,16 @@ export function revenueTotals(entries: RevenueEntry[], month = "") {
   const planned = entries.filter((e) => e.plannedCents !== null);
   const received = entries.map((e) => periodValue(e, month));
   const known = received.filter((e) => e.cents !== null);
-  const plannedCents = planned.length
-    ? planned.reduce((n, e) => sum(n, e.plannedCents!), 0)
-    : null;
-  const realizedCents = known.length
-    ? known.reduce((n, e) => sum(n, e.cents!), 0)
-    : null;
+  // Resumos anuais da API não comprovam cobertura aditiva de toda a receita.
+  const additive = !entries.some((e) => e.annual);
+  const plannedCents =
+    additive && planned.length
+      ? planned.reduce((n, e) => sum(n, e.plannedCents!), 0)
+      : null;
+  const realizedCents =
+    additive && known.length
+      ? known.reduce((n, e) => sum(n, e.cents!), 0)
+      : null;
   const missing = received.reduce((n, e) => n + e.missing, 0);
   const missingPlanned = entries.reduce(
     (n, e) => n + e.missingPlannedValues,

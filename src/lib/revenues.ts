@@ -3,11 +3,29 @@ import { connection } from "next/server";
 import { createRevenueReader } from "../core/revenue-refresh";
 import { createRedisRevenueBackend } from "../core/redis-revenue-backend";
 import { getContractsCache } from "./redis";
-const read = createRevenueReader(() => {
-  const store = getContractsCache();
-  return store ? createRedisRevenueBackend(store) : null;
-});
-export async function getRevenues(year: number) {
+import {
+  revenueMunicipalities,
+  type RevenueMunicipality,
+} from "../core/revenues";
+const readers = Object.fromEntries(
+  revenueMunicipalities.map((municipality) => [
+    municipality,
+    createRevenueReader(
+      () => {
+        const store = getContractsCache();
+        return store
+          ? createRedisRevenueBackend(store, undefined, municipality)
+          : null;
+      },
+      Date.now,
+      municipality,
+    ),
+  ]),
+);
+export async function getRevenues(
+  year: number,
+  municipality: RevenueMunicipality = "porto-velho",
+) {
   await connection();
-  return read(year);
+  return readers[municipality](year);
 }

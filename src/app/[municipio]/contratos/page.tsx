@@ -7,10 +7,15 @@ import {
   ContractsDataError,
   parseContractsQuery,
 } from "@/core/contracts-query";
-import { portoVelhoSource } from "@/connectors/porto-velho/definition";
+import {
+  dataMunicipality,
+  municipalContractsQuery,
+  municipalYear,
+} from "@/core/municipal-sources";
 import { CacheNotice } from "@/features/contracts/CacheNotice";
 import { ContractCatalog } from "@/features/contracts/ContractCatalog";
 import { formatConsultationTime } from "@/features/contracts/format";
+import { ModuleNavigation } from "@/features/shared/ModuleNavigation";
 import { getContracts } from "@/lib/contracts";
 import "./catalog.css";
 
@@ -23,24 +28,28 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  if ((await params).municipio !== "porto-velho") notFound();
+  const city = dataMunicipality((await params).municipio);
+  if (!city) notFound();
   return {
-    title: "Contratos de Porto Velho",
-    description:
-      "Consulte contratos publicados pela Prefeitura de Porto Velho, com fonte oficial e data da consulta.",
+    title: "Contratos de " + city.name,
+    description: `Consulte contratos publicados pela Prefeitura de ${city.name}, com fonte oficial e data da consulta.`,
   };
 }
 
 export default async function ContractsPage({ params, searchParams }: Props) {
-  if ((await params).municipio !== "porto-velho") notFound();
+  const city = dataMunicipality((await params).municipio);
+  if (!city) notFound();
   await connection();
   let query: ReturnType<typeof parseContractsQuery> | undefined;
   let result: Awaited<ReturnType<typeof getContracts>> | undefined;
   let invalidQuery = false;
   let problem: string | undefined;
   try {
-    query = parseContractsQuery(await searchParams);
-    result = await getContracts(query);
+    query = municipalContractsQuery(
+      parseContractsQuery(await searchParams),
+      city.slug,
+    );
+    result = await getContracts(query, city.slug);
   } catch (error) {
     invalidQuery =
       error instanceof ContractsDataError && error.code === "invalid-query";
@@ -49,7 +58,7 @@ export default async function ContractsPage({ params, searchParams }: Props) {
       : "Não foi possível consultar os contratos agora. Tente novamente em alguns instantes ou acesse a fonte oficial.";
   }
   const catalog = result?.data;
-  const sourceUrl = catalog?.sourceUrl ?? portoVelhoSource.url;
+  const sourceUrl = catalog?.sourceUrl ?? city.contracts;
   const downloadParams = new URLSearchParams({
     page: String(query?.page ?? 1),
   });
@@ -63,10 +72,13 @@ export default async function ContractsPage({ params, searchParams }: Props) {
         geist.className + " container contracts-page contracts-catalog"
       }
     >
+      <ModuleNavigation active="contratos" municipality={city.slug} />
       <header className="catalog-heading">
         <div>
           <div className="page-kicker">
-            <span>CONTRATOS MUNICIPAIS · PORTO VELHO/RO</span>
+            <span>
+              CONTRATOS MUNICIPAIS · {city.name.toLocaleUpperCase("pt-BR")}/RO
+            </span>
             {result && (
               <small>
                 Consulta à fonte em{" "}
@@ -79,14 +91,18 @@ export default async function ContractsPage({ params, searchParams }: Props) {
           <h1 className="page-title">Explore os contratos da cidade</h1>
           <p className="page-intro">
             Consulte empresas, objetos, valores e documentos dos contratos
-            publicados pela Prefeitura de Porto Velho.
+            publicados pela Prefeitura de {city.name}.
           </p>
         </div>
         {catalog && (
           <a
             className="total-summary"
-            href={"/api/porto-velho/contratos?" + downloadParams.toString()}
-            download={"contratos-porto-velho-pagina-" + query?.page + ".json"}
+            href={
+              "/api/" + city.slug + "/contratos?" + downloadParams.toString()
+            }
+            download={
+              "contratos-" + city.slug + "-pagina-" + query?.page + ".json"
+            }
             aria-label="Baixar esta página de contratos em JSON"
             title="Baixar somente esta página em JSON"
           >
@@ -117,7 +133,7 @@ export default async function ContractsPage({ params, searchParams }: Props) {
           <h2>{invalidQuery ? "Revise o filtro" : "Consulta indisponível"}</h2>
           <p>{problem}</p>
           {invalidQuery ? (
-            <Link href="/porto-velho/contratos" prefetch={false}>
+            <Link href={"/" + city.slug + "/contratos"} prefetch={false}>
               Limpar filtro e voltar à primeira página →
             </Link>
           ) : (
@@ -130,13 +146,16 @@ export default async function ContractsPage({ params, searchParams }: Props) {
           key={query.page + ":" + query.year}
           catalog={catalog}
           query={query}
-          currentYear={new Date().getUTCFullYear()}
+          currentYear={municipalYear()}
+          municipality={city.slug}
         />
       )}
       {result && catalog && (
         <>
           <p className="overview-note">
-            Incluímos o modelo “Contratos” da API, com até{" "}
+            {city.annual
+              ? `Consultamos os contratos da Prefeitura (UG ${city.company}), no exercício selecionado, com até `
+              : "Incluímos o modelo “Contratos” da API, com até "}{" "}
             {catalog.pagination.perPage} registros por página. O total é
             informado pela fonte e pode mudar entre consultas. O JSON contém
             somente a página solicitada. Não apresentamos soma global de
@@ -167,8 +186,8 @@ export default async function ContractsPage({ params, searchParams }: Props) {
           </details>
         </>
       )}
-      <Link href="/porto-velho" className="catalog-back" prefetch={false}>
-        ← Porto Velho
+      <Link href={"/" + city.slug} className="catalog-back" prefetch={false}>
+        ← {city.name}
       </Link>
     </main>
   );

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ContractPage, ContractsQuery } from "@/core/contracts";
+import type { DataMunicipality } from "@/core/municipal-sources";
 import {
   contractDepartment,
   contractSuppliers,
@@ -50,20 +51,26 @@ function Icon({
   );
 }
 
-function pageUrl(page: number, year: number | null): string {
+function pageUrl(
+  page: number,
+  year: number | null,
+  municipality: DataMunicipality,
+): string {
   const params = new URLSearchParams({ page: String(page) });
   if (year !== null) params.set("ano", String(year));
-  return "/porto-velho/contratos?" + params.toString();
+  return "/" + municipality + "/contratos?" + params.toString();
 }
 
 export function ContractCatalog({
   catalog,
   query,
   currentYear,
+  municipality = "porto-velho",
 }: {
   catalog: ContractPage;
   query: ContractsQuery;
   currentYear: number;
+  municipality?: DataMunicipality;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -98,15 +105,18 @@ export function ContractCatalog({
   const first = catalog.records.length ? (page - 1) * perPage + 1 : 0;
   const last = Math.min((page - 1) * perPage + catalog.records.length, total);
   const detailUrl = (id: string) =>
-    "/porto-velho/contratos/" +
+    "/" +
+    municipality +
+    "/contratos/" +
     id +
     "?" +
-    pageUrl(page, query.year).split("?")[1];
+    pageUrl(page, query.year, municipality).split("?")[1];
   const navigateYear = (year: number | null) =>
-    startTransition(() => router.push(pageUrl(1, year)));
+    startTransition(() => router.push(pageUrl(1, year, municipality)));
   const clear = () => {
     setFilters(defaultContractPageFilters);
-    if (query.year !== null) navigateYear(null);
+    if (query.year !== null)
+      navigateYear(municipality !== "porto-velho" ? currentYear : null);
   };
 
   return (
@@ -116,6 +126,7 @@ export function ContractCatalog({
       aria-busy={pending}
     >
       <div className="search-panel">
+        <h2 className="filters-heading">Filtros da consulta</h2>
         <label className="search-field">
           <Icon name="search" />
           <span className="contracts-sr-only">
@@ -138,8 +149,15 @@ export function ContractCatalog({
         <div className="filter-row">
           <div className="filter-selects">
             <label className="select-wrap">
-              <span className="contracts-sr-only">Ano solicitado à fonte</span>
+              <span className="filter-label">
+                Ano
+                <span className="contracts-sr-only"> solicitado à fonte</span>
+              </span>
               <select
+                data-active={
+                  query.year !== null &&
+                  (municipality === "porto-velho" || query.year !== currentYear)
+                }
                 value={query.year ?? ""}
                 disabled={pending}
                 onChange={(event) =>
@@ -150,7 +168,9 @@ export function ContractCatalog({
                   )
                 }
               >
-                <option value="">Ano: Todos</option>
+                {municipality === "porto-velho" && (
+                  <option value="">Todos os anos</option>
+                )}
                 {years.map((year) => (
                   <option key={year} value={year}>
                     {year}
@@ -159,14 +179,17 @@ export function ContractCatalog({
               </select>
             </label>
             <label className="select-wrap">
-              <span className="contracts-sr-only">Órgão nesta página</span>
+              <span className="filter-label">
+                Órgão<span className="contracts-sr-only"> nesta página</span>
+              </span>
               <select
+                data-active={filters.org !== ""}
                 value={filters.org}
                 disabled={pending}
                 aria-describedby="contract-filter-scope"
                 onChange={(event) => update({ org: event.target.value })}
               >
-                <option value="">Órgão: Todos</option>
+                <option value="">Todos os órgãos</option>
                 {options.orgs.map((org) => (
                   <option key={org} value={org}>
                     {org}
@@ -175,14 +198,17 @@ export function ContractCatalog({
               </select>
             </label>
             <label className="select-wrap">
-              <span className="contracts-sr-only">Situação nesta página</span>
+              <span className="filter-label">
+                Situação<span className="contracts-sr-only"> nesta página</span>
+              </span>
               <select
+                data-active={filters.status !== ""}
                 value={filters.status}
                 disabled={pending}
                 aria-describedby="contract-filter-scope"
                 onChange={(event) => update({ status: event.target.value })}
               >
-                <option value="">Situação: Todas</option>
+                <option value="">Todas as situações</option>
                 {options.statuses.map((status) => (
                   <option key={status} value={status}>
                     {status}
@@ -212,8 +238,9 @@ export function ContractCatalog({
             contratos nesta página
           </span>
           <label className="sort-select">
-            Ordenar:
+            Ordenar por
             <select
+              data-active={filters.sort !== "source"}
               value={filters.sort}
               disabled={pending}
               aria-describedby="contract-filter-scope"
@@ -382,7 +409,7 @@ export function ContractCatalog({
         >
           {page > 1 ? (
             <Link
-              href={pageUrl(page - 1, query.year)}
+              href={pageUrl(page - 1, query.year, municipality)}
               rel="prev"
               prefetch={false}
             >
@@ -398,7 +425,7 @@ export function ContractCatalog({
           </span>
           {page < pages ? (
             <Link
-              href={pageUrl(page + 1, query.year)}
+              href={pageUrl(page + 1, query.year, municipality)}
               rel="next"
               prefetch={false}
             >

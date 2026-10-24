@@ -952,33 +952,26 @@
 .pvh-module .notice.error {
   border-color: #ac6b60;
 }
+.pvh-module .works-coverage-notice {
+  border-color: #716343;
+  border-left: 4px solid var(--gold);
+  background: var(--surface);
+  color: var(--ink);
+}
+.pvh-module .works-coverage-notice h2 {
+  color: var(--gold-soft);
+  font-size: 20px;
+  line-height: 1.4;
+}
+.pvh-module .works-coverage-notice p {
+  margin-block: 12px;
+  overflow-wrap: anywhere;
+}
 .pvh-module .empty-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 16px;
-}
-.pvh-module .module-navigation {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-  color: var(--muted);
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--line);
-}
-.pvh-module .module-navigation a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 14px;
-}
-.pvh-module .module-navigation [aria-current] {
-  color: var(--gold-soft);
-  background: var(--surface-raised);
-  box-shadow: inset 0 -2px var(--gold);
 }
 .pvh-module .detail-grid {
   display: grid;
@@ -1107,4 +1100,69 @@
 }
 .revenue-initial-filters a {
   align-self: center;
+}
+
+/* Campos de consulta distinguíveis do painel, inclusive sem hover. */
+.pvh-module :is(.work-filter > span, .revenue-selects label, .revenue-sort) {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.pvh-module
+  :is(
+    .work-filter select,
+    .work-sort select,
+    .revenue-selects select,
+    .revenue-sort select,
+    .revenue-initial-filters input
+  ) {
+  background-color: var(--deep);
+  color: var(--ink);
+  border: 1px solid #817660;
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 400;
+}
+.pvh-module
+  :is(.work-filter, .work-sort, .revenue-selects, .revenue-sort)
+  select {
+  cursor: pointer;
+}
+.pvh-module
+  :is(.work-filter, .work-sort, .revenue-selects, .revenue-sort)
+  select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.pvh-module :is(.work-search, .revenue-filters) .search-field {
+  background: var(--deep);
+  border: 1px solid #817660;
+}
+.pvh-module .revenue-filters .search-field:focus-within {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.pvh-module :is(.work-search, .revenue-filters) input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+.pvh-module .more-filters summary {
+  background: var(--surface-raised);
+  border-color: #817660;
+  color: var(--gold-soft);
+  font-weight: 600;
+  min-height: 48px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pvh-module
+    :is(
+      .work-filter select,
+      .work-sort select,
+      .revenue-selects select,
+      .revenue-sort select,
+      .revenue-initial-filters input,
+      .more-filters summary
+    ):not(:disabled):hover {
+    border-color: var(--gold-soft);
+  }
 }

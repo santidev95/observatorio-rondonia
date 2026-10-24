@@ -74,7 +74,9 @@ const sourceUpdatedAt = z.iso.datetime({ offset: true }).nullable();
 
 export const contractRecordSchema = z
   .object({
-    id: z.string().regex(/^[1-9]\d*$/),
+    id: z.string().regex(/^(?:[1-9]\d*|(?:20\d{2}|2100)-[A-Za-z0-9_-]{2,90})$/),
+    sourceId: publicText.max(128).optional(),
+    sourceYear: z.number().int().min(2000).max(2100).optional(),
     number: nullableText,
     year: z.number().int().min(1).max(9999).nullable(),
     object: nullableText,

@@ -1,13 +1,24 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { WORK_RESTORE_KEY, worksReturnUrl } from "./navigation";
+import {
+  workStorageKeys,
+  worksReturnUrl,
+  worksUrl,
+  type WorksContext,
+} from "./navigation";
+import { defaultFilters } from "./filters";
 
-export function BackToWorks() {
-  const [href, setHref] = useState("/porto-velho/obras/");
+export function BackToWorks({
+  municipality = "porto-velho",
+  year,
+}: WorksContext) {
+  const [href, setHref] = useState(
+    worksUrl(defaultFilters, 1, { municipality, year }),
+  );
   useEffect(() => {
-    setHref(worksReturnUrl(window.location.search));
-  }, []);
+    setHref(worksReturnUrl(window.location.search, { municipality, year }));
+  }, [municipality, year]);
   return (
     <Link
       href={href}
@@ -16,7 +27,7 @@ export function BackToWorks() {
       scroll={false}
       onClick={() => {
         try {
-          sessionStorage.setItem(WORK_RESTORE_KEY, href);
+          sessionStorage.setItem(workStorageKeys(municipality).restore, href);
         } catch {
           /* Optional scroll restoration. */
         }
