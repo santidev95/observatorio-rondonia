@@ -1,6 +1,8 @@
 # Changelog
 
-## Não publicado
+## [0.4.1] — 2026-10-24
+
+## Alterações de Tema
 
 - Mantine integrado com tema escuro e paleta amarela original centralizada, compartilhada com os estilos existentes.
 - Busca municipal, controles do mapa, navegação, cartões e consultas passam a usar componentes Mantine, preservando filtros, teclado, valores, links e regras de cobertura.
