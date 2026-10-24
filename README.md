@@ -4,7 +4,9 @@
 
 Plataforma cívica independente e colaborativa para consultar dados públicos dos municípios de Rondônia. Voltada a cidadãos, jornalistas e pesquisa sobre a gestão municipal, com fontes oficiais, datas e limites de cobertura.
 
-**Estado atual: piloto em desenvolvimento.** O mapa permite escolher os 52 municípios de Rondônia. Contratos de Porto Velho possui consulta direta à API oficial, com filtro de ano, paginação e JSON normalizado em `/porto-velho/contratos`. A publicação em produção foi verificada em 19/10/2026. Obras e Receitas de Porto Velho também possuem consulta oficial, com listagens e filtros adaptados do Observatório PVH. Outros municípios permanecem em preparação.
+**Estado atual: piloto em desenvolvimento.** O mapa permite escolher os 52 municípios de Rondônia. Contratos de Porto Velho possui consulta direta à API oficial, com filtro de ano, paginação e JSON normalizado em `/porto-velho/contratos`. A publicação em produção foi verificada em 19/10/2026. Obras e Receitas de Porto Velho também possuem consulta oficial, com listagens e filtros adaptados do Observatório PVH.
+
+Ji-Paraná (Prefeitura, UG 2) e Ariquemes (Prefeitura, UG 1) possuem Contratos, Obras e Receitas implementados no código, com rotas próprias e cache isolado. Compartilham a implementação da plataforma Pública, mantendo origem, unidade gestora, IDs e limites por município. Receitas apresenta rubricas anuais com cobertura parcial, sem soma municipal ou série mensal inferida. Obras exige paginação validada; por decisão do mantenedor, Ji-Paraná admite exatamente uma linha ausente na última página, e Ariquemes pode exibir os registros recebidos quando a contagem é menor que a declarada, após consultar todas as páginas com metadados válidos e estáveis. Essas consultas parciais exibem avisos e contagens, agrupam somente repetições equivalentes do mesmo ID e não usam cache. Conflitos e demais falhas continuam causando indisponibilidade. Veja as fontes e os limites de [Ji-Paraná](docs/ji-parana.md) e [Ariquemes](docs/ariquemes.md). Essas implementações locais não comprovam publicação em produção; os demais municípios continuam em preparação.
 
 ## Rodar com Docker
 
@@ -16,12 +18,12 @@ Abra [http://localhost:3000](http://localhost:3000). O Compose inclui um Redis l
 
 ## Executar localmente com Node.js
 
-Use Node.js 22, conforme `.node-version`, para reproduzir o CI e o Docker de produção. O cache usa Redis em Docker na VPS: copie `.env.example` para `.env.local` e configure `REDIS_URL` e `REDIS_PASSWORD` somente no servidor. Sem essas variáveis, Obras e Contratos consultam a API diretamente. Não é necessário PostgreSQL. Para Receitas, configure Redis e execute o worker em outro terminal; o site lê a última carga válida e não espera uma coleta durante a requisição.
+Use Node.js 22, conforme `.node-version`, para reproduzir o CI e o Docker de produção. O cache usa Redis em Docker na VPS: copie `.env.example` para `.env.local` ou `.env` e configure `REDIS_URL` e `REDIS_PASSWORD` somente no servidor. O comando do worker aceita os dois arquivos; `.env.local` prevalece sobre `.env`, e variáveis já definidas no processo têm prioridade. Sem essas variáveis, Obras e Contratos consultam a API diretamente. Não é necessário PostgreSQL. Para Receitas, configure Redis e execute o worker em outro terminal; o site lê a última carga válida e não espera uma coleta durante a requisição.
 
 ```sh
 npm ci
 npm run dev
-# Em outro terminal, com Redis configurado no .env.local:
+# Em outro terminal, com Redis configurado em .env.local ou .env:
 npm run worker:receitas
 ```
 

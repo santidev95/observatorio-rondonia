@@ -7,16 +7,33 @@ import { redisMunicipalReservation } from "../src/core/municipal-rate-limit";
 import { configureMunicipalRateLimit } from "../src/connectors/porto-velho/transport";
 import { readSource } from "../src/core/contracts-reader";
 import { fetchRevenues } from "../src/connectors/porto-velho/revenues";
+import { fetchJiParanaRevenues } from "../src/connectors/ji-parana/revenues";
+import { fetchAriquemesRevenues } from "../src/connectors/ariquemes/revenues";
+import { publicaTransport } from "../src/connectors/publica/transport";
+import {
+  revenueMunicipalities,
+  type RevenueMunicipality,
+} from "../src/core/revenues";
+
+const collectors: Record<RevenueMunicipality, typeof fetchRevenues> = {
+  "porto-velho": fetchRevenues,
+  "ji-parana": fetchJiParanaRevenues,
+  ariquemes: fetchAriquemesRevenues,
+};
 
 async function main() {
   const config = redisConfig(process.env);
   if (!config) throw new Error("Redis não configurado para o worker");
-  const store = createRedisCacheStore(config),
-    backend = createRedisRevenueBackend(store);
+  const store = createRedisCacheStore(config);
+  const backends = revenueMunicipalities.map((municipality) => ({
+    municipality,
+    backend: createRedisRevenueBackend(store, undefined, municipality),
+  }));
   const revision = process.env.APP_REVISION ?? "development";
   if (process.argv.includes("--healthcheck")) {
     try {
-      if (!(await backend.healthy(revision))) process.exitCode = 1;
+      for (const { backend } of backends)
+        if (!(await backend.healthy(revision))) process.exitCode = 1;
     } finally {
       store.close();
     }
@@ -26,22 +43,34 @@ async function main() {
   process.once("SIGTERM", () => stop.abort());
   process.once("SIGINT", () => stop.abort());
   configureMunicipalRateLimit(redisMunicipalReservation(store, false));
-  const run = createRevenueWorker({
-    backend,
-    read: (year, signal) =>
-      readSource(
-        (inner) => fetchRevenues(year, AbortSignal.any([inner, signal])),
-        { timeoutMs: 8 * 60_000 },
-      ),
-    log: (event) =>
-      console.log(JSON.stringify({ worker: "receitas", ...event })),
-  });
+  for (const municipality of ["ji-parana", "ariquemes"] as const)
+    publicaTransport(municipality).configureRateLimit(
+      redisMunicipalReservation(store, false, municipality),
+    );
+  const workers = backends.map(({ municipality, backend }) =>
+    createRevenueWorker({
+      backend,
+      municipality,
+      read: (year, signal) =>
+        readSource(
+          (inner) =>
+            collectors[municipality](year, AbortSignal.any([inner, signal])),
+          { timeoutMs: 8 * 60_000 },
+        ),
+      log: (event) =>
+        console.log(
+          JSON.stringify({ worker: "receitas", municipality, ...event }),
+        ),
+    }),
+  );
   let beating = false;
   const beat = async () => {
     if (beating) return;
     beating = true;
     try {
-      await backend.heartbeat(revision);
+      await Promise.all(
+        backends.map(({ backend }) => backend.heartbeat(revision)),
+      );
     } catch {
       console.error("Worker de Receitas: Redis indisponível.");
     } finally {
@@ -53,7 +82,12 @@ async function main() {
   try {
     do {
       try {
-        if (await run(stop.signal)) continue;
+        let processed = false;
+        for (const run of workers) {
+          if (stop.signal.aborted) break;
+          processed = (await run(stop.signal)) || processed;
+        }
+        if (processed) continue;
       } catch {
         if (!stop.signal.aborted)
           console.error(

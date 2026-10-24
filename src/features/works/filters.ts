@@ -60,7 +60,8 @@ export function filterWorks(works: Work[], filters: Filters) {
     )
     .sort((a, b) =>
       filters.sort === "value"
-        ? (b.contractedCents ?? -1) - (a.contractedCents ?? -1)
+        ? (b.contractedCents ?? b.declaredValueCents ?? -1) -
+          (a.contractedCents ?? a.declaredValueCents ?? -1)
         : filters.sort === "name"
           ? a.title.localeCompare(b.title, "pt-BR")
           : (b.sourceUpdatedAt ?? "").localeCompare(a.sourceUpdatedAt ?? "") ||

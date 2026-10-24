@@ -1,9 +1,12 @@
 import type { RedisScriptStore } from "./redis-cache-store";
-const key = "observatorio:RO:porto-velho:source:v1:pace";
 export function redisMunicipalReservation(
   store: RedisScriptStore,
   failOpen: boolean,
+  municipality = "porto-velho",
 ) {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(municipality))
+    throw new Error("Município inválido");
+  const key = `observatorio:RO:${municipality}:source:v1:pace`;
   return async () => {
     try {
       const wait = await store.eval(

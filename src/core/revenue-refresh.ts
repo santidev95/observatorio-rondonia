@@ -1,10 +1,18 @@
 import { z } from "zod";
-import { revenueSnapshotSchema, type RevenueSnapshot } from "./revenues";
+import {
+  revenueSnapshotSchema,
+  revenueSourceUrl,
+  type RevenueMunicipality,
+  type RevenueSnapshot,
+} from "./revenues";
 
 export const REVENUE_RETENTION_MS = 7 * 24 * 3600_000;
 export const REVENUE_RETRY_MS = 5 * 60_000;
 export const REVENUE_LEASE_MS = 60_000;
 export const REVENUE_PREFIX = "observatorio:RO:porto-velho:receitas:v2";
+export const revenuePrefix = (
+  municipality: RevenueMunicipality = "porto-velho",
+) => `observatorio:RO:${municipality}:receitas:v2`;
 export function assertRevenueYear(year: number) {
   if (!Number.isInteger(year) || year < 2000 || year > 2100)
     throw new Error("Exercício inválido");
@@ -85,6 +93,7 @@ export function parseRevenueVersion(
   raw: unknown,
   year: number,
   now: number,
+  municipality: RevenueMunicipality = "porto-velho",
 ): RevenueVersion | null {
   const p = revenueVersionSchema.safeParse(raw);
   if (!p.success) return null;
@@ -94,9 +103,10 @@ export function parseRevenueVersion(
   if (
     v.year !== year ||
     v.data.years[0].year !== year ||
-    v.data.sourceUrl !==
-      "https://api.portovelho.ro.gov.br/api/v1/receitas?portal_id=12535&ano=" +
-        year ||
+    v.data.sourceUrl !== revenueSourceUrl(municipality, year) ||
+    (municipality !== "porto-velho"
+      ? v.data.municipality !== municipality
+      : v.data.portalId !== 12535) ||
     fetched > now ||
     Date.parse(v.data.generatedAt) > fetched ||
     fresh - fetched !== revenueFreshnessMs(year, fetched) ||
@@ -110,6 +120,7 @@ export function makeRevenueVersion(
   year: number,
   data: RevenueSnapshot,
   fetchedAt: string,
+  municipality: RevenueMunicipality = "porto-velho",
 ): RevenueVersion {
   const at = Date.parse(fetchedAt);
   const raw = {
@@ -120,7 +131,7 @@ export function makeRevenueVersion(
     refreshAfter: new Date(at + revenueFreshnessMs(year, at)).toISOString(),
     retainUntil: new Date(at + REVENUE_RETENTION_MS).toISOString(),
   };
-  const parsed = parseRevenueVersion(raw, year, at);
+  const parsed = parseRevenueVersion(raw, year, at, municipality);
   if (!parsed) throw new Error("Resumo de receitas inválido");
   return parsed;
 }
@@ -128,7 +139,9 @@ export function parseLegacyRevenue(
   raw: unknown,
   year: number,
   now: number,
+  municipality: RevenueMunicipality = "porto-velho",
 ): RevenueVersion | null {
+  if (municipality !== "porto-velho") return null;
   const legacy = z
     .object({
       key: z.string(),
@@ -162,6 +175,7 @@ export function parseLegacyRevenue(
 export function createRevenueReader(
   backend: () => RevenueBackend | null,
   now: () => number = Date.now,
+  municipality: RevenueMunicipality = "porto-velho",
 ) {
   return async (year: number): Promise<RevenueReadResult> => {
     assertRevenueYear(year);
@@ -182,7 +196,12 @@ export function createRevenueReader(
       if (!store) return empty;
       const raw = await store.read(year),
         time = now();
-      const version = parseRevenueVersion(raw.version, year, time);
+      const version = parseRevenueVersion(
+        raw.version,
+        year,
+        time,
+        municipality,
+      );
       const attempt = revenueAttemptSchema.safeParse(raw.attempt);
       const fresh = version !== null && time < Date.parse(version.refreshAfter);
       let queued = false;

@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.4.0] — 2026-10-24
+
+### Integrações municipais
+
+- Contratos, Obras e Receitas da Prefeitura de Ji-Paraná (UG 2) e de Ariquemes (UG 1), com páginas, filtros por exercício, fichas e downloads próprios.
+- Implementação compartilhada da plataforma Pública, com origem, unidade gestora, identidade dos registros, cache e limites de consulta separados por município.
+- Receitas de Ji-Paraná e Ariquemes apresenta rubricas anuais de arrecadação direta e transferências estaduais e federais, com cobertura parcial explícita, sem inferir total municipal ou série mensal.
+- Navegação entre Contratos, Obras e Receitas preserva o município, inclusive nas fichas de Contratos. Filtros recebem maior destaque, e o retorno às listagens preserva a consulta.
+
+### Cobertura e integridade
+
+- Obras de Ji-Paraná admite, por autorização do mantenedor, exatamente uma linha ausente na última página, com `complete: false`, contagens e aviso persistente na lista e nas fichas.
+- Obras de Ariquemes pode exibir os registros recebidos quando o total declarado supera as linhas retornadas, após consultar todas as páginas com metadados válidos e estáveis. O aviso de dados inconsistentes preserva as contagens e não presume quais registros faltam ou se o contador está correto.
+- As duas consultas parciais agrupam somente repetições equivalentes do mesmo ID após normalização, distinguindo linhas recebidas, repetições e obras únicas. Não são gravadas nem reutilizadas no Redis e não substituem uma carga completa válida; conflitos e demais falhas continuam bloqueados.
+- Documentação das fontes e testes com fixtures sintéticas para paginação, valores, identidade municipal, consultas parciais, isolamento e preservação da última versão válida.
+
+### Segurança e operação
+
+- Next.js atualizado de 16.4.0 para 16.4.3 por correção de segurança, com `experimental.agentUpgrade: "security"` e lockfile das dependências correspondentes.
+- O worker de Receitas atende os três municípios, mantendo filas, leases, publicação atômica e verificação de saúde por município, com renovação e retenção das versões válidas.
+- O comando local do worker aceita `.env` e `.env.local` opcionais; `.env.local` prevalece sobre `.env`, preservando a prioridade das variáveis do processo.
+
+Esta entrada prepara a versão 0.4.0. Implementação e validação local não comprovam publicação: CI remoto, release e deploy devem ser verificados separadamente. Os demais municípios permanecem em preparação.
+
 ## [0.3.1] — 2026-10-20
 
 ### Pipeline e releases
@@ -105,6 +129,7 @@
 
 **Changelog completo:** [v0.1.0...v0.2.0](https://github.com/santidev95/observatorio-rondonia/compare/v0.1.0...v0.2.0)
 
+[0.4.0]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.4.0
 [0.3.1]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.3.1
 [0.3.0]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.3.0
 [0.2.1]: https://github.com/santidev95/observatorio-rondonia/releases/tag/v0.2.1

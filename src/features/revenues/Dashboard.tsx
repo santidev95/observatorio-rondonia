@@ -11,6 +11,8 @@ import {
 } from "./filters";
 
 export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
+  const annual = view.aggregation === "annual-accounts";
+  const municipality = view.municipality;
   const {
     latestYear,
     filters,
@@ -23,7 +25,7 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
     count,
   } = view;
   const { draft, pending, update, changePage } = useCatalogNavigation(
-    "/porto-velho/receitas/",
+    `/${municipality}/receitas/`,
     filters,
     view.query,
     (next) => revenueFilterQuery(next, latestYear),
@@ -33,7 +35,7 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
     1,
     ...monthly.map((m) => Math.abs(m.realizedCents ?? 0)),
   );
-  const sourceHref = `https://api.portovelho.ro.gov.br/api/v1/receitas?portal_id=12535&ano=${filters.year}`;
+  const sourceHref = view.sourceUrl;
   return (
     <>
       <section
@@ -94,8 +96,12 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
               onChange={(e) => update({ kind: e.target.value, category: "" })}
             >
               <option value="budget">Orçamentária</option>
-              <option value="extra">Extraorçamentária</option>
-              <option value="unknown">Tipo não informado</option>
+              {!annual && (
+                <>
+                  <option value="extra">Extraorçamentária</option>
+                  <option value="unknown">Tipo não informado</option>
+                </>
+              )}
             </select>
           </label>
           <label>
@@ -113,26 +119,29 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
               ))}
             </select>
           </label>
-          <label>
-            Período da arrecadação
-            <select
-              value={filters.month}
-              disabled={pending}
-              onChange={(e) => update({ month: e.target.value })}
-            >
-              <option value="">Todos os meses publicados</option>
-              {monthNames.map((m, i) => (
-                <option key={m} value={i + 1}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </label>
+          {!annual && (
+            <label>
+              Período da arrecadação
+              <select
+                value={filters.month}
+                disabled={pending}
+                onChange={(e) => update({ month: e.target.value })}
+              >
+                <option value="">Todos os meses publicados</option>
+                {monthNames.map((m, i) => (
+                  <option key={m} value={i + 1}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
         <div className="revenue-filter-footer">
           <span>
-            Portal da Prefeitura e suas unidades · IPAM e Câmara fora deste
-            recorte
+            {annual
+              ? `Prefeitura de ${view.municipalityName} (UG ${view.company}) · Receitas diretas e transferências estaduais e federais`
+              : "Portal da Prefeitura e suas unidades · IPAM e Câmara fora deste recorte"}
           </span>
           {revenueFilterQuery(filters, latestYear) && (
             <button
@@ -152,61 +161,87 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
       )}
       <div className="revenue-coverage">
         <span>
-          Exercício <strong>{filters.year}</strong> · Documentos da fonte até{" "}
-          <strong>{dateLabel(yearStats?.lastDocumentDate ?? null)}</strong>
+          Exercício <strong>{filters.year}</strong> ·{" "}
+          {annual ? (
+            "Rubricas anuais · cobertura parcial"
+          ) : (
+            <>
+              Documentos da fonte até{" "}
+              <strong>{dateLabel(yearStats?.lastDocumentDate ?? null)}</strong>
+            </>
+          )}
         </span>
         <span>Consulta em {dateLabel(view.generatedAt)}</span>
       </div>
-      <section
-        className="revenue-metrics"
-        aria-label="Resumo do recorte selecionado"
-        aria-live="polite"
-      >
-        <article>
-          <span>Previsão anual da receita</span>
-          <strong>
-            {filters.kind === "budget"
-              ? currency(totals.plannedCents, true)
-              : "Não se aplica"}
-          </strong>
-          <small>{filters.year} · Independente do mês escolhido</small>
-        </article>
-        <article>
-          <span>
-            {filters.kind === "budget"
-              ? "Arrecadação registrada"
-              : "Entradas registradas"}
-          </span>
-          <strong>{currency(totals.realizedCents, true)}</strong>
-          <small>
-            {filters.month
-              ? monthNames[Number(filters.month) - 1]
-              : "Todos os meses publicados"}{" "}
-            · Com valores negativos da fonte
-          </small>
-        </article>
-        <article>
-          <span>Sobre a previsão anual</span>
-          <strong>{percentLabel(totals.percent)}</strong>
-          <small>
-            {totals.percent === null
-              ? "Comparação indisponível neste recorte"
-              : "Não representa execução de despesas"}
-          </small>
-        </article>
-        <article>
-          <span>Documentos no período</span>
-          <strong>{totals.documents.toLocaleString("pt-BR")}</strong>
-          <small>
-            {count.toLocaleString("pt-BR")} contas e fontes no recorte
-          </small>
-        </article>
-      </section>
+      {view.warnings.map((warning) => (
+        <p key={warning} className="notice" role="status">
+          {warning}
+        </p>
+      ))}
+      {annual ? (
+        <section className="revenue-metrics" aria-label="Cobertura do recorte">
+          <article>
+            <span>Rubricas no recorte</span>
+            <strong>{count.toLocaleString("pt-BR")}</strong>
+            <small>
+              Valores anuais por linha; sem soma ou percentual global.
+            </small>
+          </article>
+        </section>
+      ) : (
+        <section
+          className="revenue-metrics"
+          aria-label="Resumo do recorte selecionado"
+          aria-live="polite"
+        >
+          <article>
+            <span>Previsão anual da receita</span>
+            <strong>
+              {filters.kind === "budget"
+                ? currency(totals.plannedCents, true)
+                : "Não se aplica"}
+            </strong>
+            <small>{filters.year} · Independente do mês escolhido</small>
+          </article>
+          <article>
+            <span>
+              {filters.kind === "budget"
+                ? "Arrecadação registrada"
+                : "Entradas registradas"}
+            </span>
+            <strong>{currency(totals.realizedCents, true)}</strong>
+            <small>
+              {filters.month
+                ? monthNames[Number(filters.month) - 1]
+                : "Todos os meses publicados"}{" "}
+              · Com valores negativos da fonte
+            </small>
+          </article>
+          <article>
+            <span>Sobre a previsão anual</span>
+            <strong>{percentLabel(totals.percent)}</strong>
+            <small>
+              {totals.percent === null
+                ? "Comparação indisponível neste recorte"
+                : "Não representa execução de despesas"}
+            </small>
+          </article>
+          <article>
+            <span>Documentos no período</span>
+            <strong>{totals.documents.toLocaleString("pt-BR")}</strong>
+            <small>
+              {count.toLocaleString("pt-BR")} contas e fontes no recorte
+            </small>
+          </article>
+        </section>
+      )}
       {(totals.missing > 0 || totals.missingPlanned > 0) && (
         <div className="notice" role="status">
-          Há {totals.missing} documentos e {totals.missingPlanned} previsões sem
-          valor válido. As somas têm cobertura parcial; o percentual não é
-          calculado.
+          Há {totals.missing} {annual ? "rubricas" : "documentos"} e{" "}
+          {totals.missingPlanned} previsões sem valor válido.{" "}
+          {annual
+            ? "Os campos ausentes permanecem indisponíveis, sem serem convertidos em zero."
+            : "As somas têm cobertura parcial; o percentual não é calculado."}
         </div>
       )}
       {filters.kind !== "budget" && (
@@ -216,47 +251,49 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
           anual.
         </div>
       )}
-      <section
-        className="revenue-panel"
-        aria-labelledby="revenue-monthly-heading"
-      >
-        <div className="revenue-section-heading">
-          <div>
-            <h2 id="revenue-monthly-heading">Evolução mensal</h2>
-            <p>
-              Valores registrados no exercício e no recorte selecionado. Mês sem
-              documento permanece indisponível.
-            </p>
-          </div>
-        </div>
-        <div className="revenue-month-chart">
-          {monthly.map((m) => (
-            <div
-              key={m.month}
-              className={`revenue-month ${filters.month === String(m.month) ? "selected" : ""}`}
-            >
-              <div className="revenue-bar-space" aria-hidden="true">
-                <span
-                  className={(m.realizedCents ?? 0) < 0 ? "negative" : ""}
-                  style={{
-                    height: `${(Math.abs(m.realizedCents ?? 0) / max) * 100}%`,
-                  }}
-                />
-              </div>
-              <strong>{m.name.slice(0, 3)}</strong>
-              <small>
-                {m.realizedCents === null
-                  ? "Sem registros"
-                  : currency(m.realizedCents, true)}
-              </small>
-              <span className="sr-only">
-                {m.documents} documentos
-                {m.missing > 0 ? `; ${m.missing} valores ausentes` : ""}
-              </span>
+      {!annual && (
+        <section
+          className="revenue-panel"
+          aria-labelledby="revenue-monthly-heading"
+        >
+          <div className="revenue-section-heading">
+            <div>
+              <h2 id="revenue-monthly-heading">Evolução mensal</h2>
+              <p>
+                Valores registrados no exercício e no recorte selecionado. Mês
+                sem documento permanece indisponível.
+              </p>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+          <div className="revenue-month-chart">
+            {monthly.map((m) => (
+              <div
+                key={m.month}
+                className={`revenue-month ${filters.month === String(m.month) ? "selected" : ""}`}
+              >
+                <div className="revenue-bar-space" aria-hidden="true">
+                  <span
+                    className={(m.realizedCents ?? 0) < 0 ? "negative" : ""}
+                    style={{
+                      height: `${(Math.abs(m.realizedCents ?? 0) / max) * 100}%`,
+                    }}
+                  />
+                </div>
+                <strong>{m.name.slice(0, 3)}</strong>
+                <small>
+                  {m.realizedCents === null
+                    ? "Sem registros"
+                    : currency(m.realizedCents, true)}
+                </small>
+                <span className="sr-only">
+                  {m.documents} documentos
+                  {m.missing > 0 ? `; ${m.missing} valores ausentes` : ""}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       <section
         className="revenue-panel"
         aria-labelledby="revenue-accounts-heading"
@@ -265,7 +302,9 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
           <div>
             <h2 id="revenue-accounts-heading">Receitas por conta e fonte</h2>
             <p>
-              A previsão é anual. A arrecadação acompanha o período escolhido.
+              {annual
+                ? "Valores anuais publicados por rubrica. As linhas não são somadas para estimar o total municipal."
+                : "A previsão é anual. A arrecadação acompanha o período escolhido."}
             </p>
           </div>
           <label className="revenue-sort">
@@ -298,7 +337,11 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
                   <th scope="col">Conta e fonte de recurso</th>
                   <th scope="col">Unidade gestora</th>
                   <th scope="col">Previsão anual</th>
-                  <th scope="col">Registrado no período</th>
+                  <th scope="col">
+                    {annual
+                      ? "Arrecadado informado no ano"
+                      : "Registrado no período"}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -317,10 +360,20 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
                             {e.origin}
                             <br />
                             {e.plannedLines} linhas de previsão ·{" "}
-                            {received.documents} documentos ·{" "}
+                            {received.documents}{" "}
+                            {annual ? "rubricas anuais" : "documentos"} ·{" "}
                             {received.missing + e.missingPlannedValues} valores
                             ausentes
                           </p>
+                          {e.sourceUrl && (
+                            <a
+                              href={e.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Código {e.sourceId} · consultar grupo na fonte ↗
+                            </a>
+                          )}
                         </details>
                       </th>
                       <td>{e.unitName}</td>
@@ -367,9 +420,9 @@ export function RevenueDashboard({ view }: { view: RevenueDashboardView }) {
       </section>
       <div className="revenue-source-links">
         <a href={sourceHref} target="_blank" rel="noopener noreferrer">
-          Consultar documentos na API <ArrowUpRight size={15} />
+          Consultar dados na API <ArrowUpRight size={15} />
         </a>
-        <a href={`/api/porto-velho/receitas?ano=${filters.year}`} download>
+        <a href={`/api/${municipality}/receitas?ano=${filters.year}`} download>
           Baixar os resumos em JSON <Download size={15} />
         </a>
       </div>

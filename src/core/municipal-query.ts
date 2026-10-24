@@ -1,11 +1,22 @@
+import { municipalYear } from "./municipal-sources";
 export class MunicipalQueryError extends Error {
   constructor() {
     super("Filtros inválidos. Revise os parâmetros da consulta.");
   }
 }
+export function parseWorksYear(
+  input: Record<string, string | string[] | undefined>,
+  currentYear = municipalYear(),
+) {
+  const value = input.ano;
+  if (value === undefined) return currentYear;
+  if (typeof value !== "string" || !/^(?:20\d{2}|2100)$/.test(value))
+    throw new MunicipalQueryError();
+  return Number(value);
+}
 export function parseRevenueQuery(
   input: Record<string, string | string[] | undefined>,
-  currentYear = new Date().getUTCFullYear(),
+  currentYear = municipalYear(),
 ) {
   const allowed = [
     "ano",

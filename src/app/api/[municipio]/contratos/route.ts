@@ -4,6 +4,7 @@ import {
   parseContractsQuery,
 } from "@/core/contracts-query";
 import { getContracts } from "@/lib/contracts";
+import { dataMunicipality } from "@/core/municipal-sources";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,8 @@ export async function GET(
   { params }: { params: Promise<{ municipio: string }> },
 ) {
   const { municipio } = await params;
-  if (municipio !== "porto-velho" || !getMunicipality(municipio)) {
+  const city = dataMunicipality(municipio);
+  if (!city || !getMunicipality(municipio)) {
     return Response.json(
       {
         error: {
@@ -34,7 +36,7 @@ export async function GET(
         return [key, values.length === 1 ? values[0] : values];
       }),
     );
-    const result = await getContracts(parseContractsQuery(input));
+    const result = await getContracts(parseContractsQuery(input), city.slug);
     return Response.json(
       { municipality: municipio, module: "contratos", ...result },
       { headers: { ...noStore, "X-Observatorio-Cache": result.cache.status } },

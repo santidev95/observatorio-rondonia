@@ -10,6 +10,31 @@ import {
   ContractsDataError,
 } from "./contracts-query";
 import type { ContractsResult, ContractResult } from "./contracts-reader";
+import {
+  publicaSource,
+  type DataMunicipality,
+  type PublicaMunicipality,
+} from "./municipal-sources";
+import { Buffer } from "node:buffer";
+import type { ContractRecord } from "./contracts";
+
+function matchesPublicaContract(
+  record: ContractRecord,
+  year: number,
+  municipality: PublicaMunicipality,
+) {
+  const source = publicaSource(municipality);
+  const url = new URL(record.sourceUrl);
+  return (
+    record.sourceYear === year &&
+    typeof record.sourceId === "string" &&
+    record.id ===
+      `${year}-${Buffer.from(record.sourceId, "utf8").toString("base64url")}` &&
+    url.origin === source.apiOrigin &&
+    url.pathname === `/api/contratos/${year}/${source.company}` &&
+    url.search === ""
+  );
+}
 
 export const CONTRACTS_CACHE_TTL_SECONDS = 3600;
 export const CONTRACTS_CACHE_PREFIX =
@@ -28,10 +53,13 @@ const pageResultSchema = z
   .strict();
 const origin = "https://api.portovelho.ro.gov.br/api/v1/contratos";
 
-export function contractsPageCacheKey(input: ContractsQuery): string {
+export function contractsPageCacheKey(
+  input: ContractsQuery,
+  municipality: DataMunicipality = "porto-velho",
+): string {
   const query = normalizeContractsQuery(input);
   return (
-    CONTRACTS_CACHE_PREFIX +
+    `observatorio:RO:${municipality}:contratos:v1` +
     ":list:year:" +
     (query.year ?? "all") +
     ":page:" +
@@ -39,9 +67,12 @@ export function contractsPageCacheKey(input: ContractsQuery): string {
     ":size:25"
   );
 }
-export function contractCacheKey(id: string): string {
+export function contractCacheKey(
+  id: string,
+  municipality: DataMunicipality = "porto-velho",
+): string {
   if (!isContractId(id)) throw new ContractsDataError("invalid-query");
-  return CONTRACTS_CACHE_PREFIX + ":detail:" + id;
+  return `observatorio:RO:${municipality}:contratos:v1:detail:` + id;
 }
 
 type Options = {
@@ -170,13 +201,38 @@ export function cachedReader<T extends { fetchedAt: string }>(
 export function createCachedContractsReader(
   options: Options & {
     read: (query: ContractsQuery) => Promise<ContractsResult>;
+    municipality?: DataMunicipality;
   },
 ) {
+  const municipality = options.municipality ?? "porto-velho";
   const read = cachedReader(
     options,
     pageResultSchema,
     (result, key) => {
       const url = new URL(result.data.sourceUrl);
+      if (municipality !== "porto-velho") {
+        const source = publicaSource(municipality);
+        const match = /^\/api\/contratos\/(20\d{2}|2100)\/([1-9]\d*)$/.exec(
+          url.pathname,
+        );
+        return (
+          url.origin === source.apiOrigin &&
+          match !== null &&
+          Number(match[2]) === source.company &&
+          url.searchParams.size === 1 &&
+          /^[1-9]\d*$/.test(url.searchParams.get("page") ?? "") &&
+          contractsPageCacheKey(
+            {
+              page: result.data.pagination.currentPage,
+              year: Number(match[1]),
+            },
+            municipality,
+          ) === key &&
+          result.data.records.every((record) =>
+            matchesPublicaContract(record, Number(match[1]), municipality),
+          )
+        );
+      }
       const query = {
         page: result.data.pagination.currentPage,
         year: url.searchParams.has("ano")
@@ -188,6 +244,11 @@ export function createCachedContractsReader(
         url.searchParams.get("modelo") === "Contratos" &&
         url.searchParams.get("por-pagina") === "25" &&
         url.searchParams.get("page") === String(query.page) &&
+        result.data.records.every(
+          (record) =>
+            /^[1-9]\d*$/.test(record.id) &&
+            record.sourceUrl === origin + "/" + record.id,
+        ) &&
         contractsPageCacheKey(query) === key
       );
     },
@@ -195,13 +256,19 @@ export function createCachedContractsReader(
   );
   return (input: ContractsQuery) => {
     const query = normalizeContractsQuery(input);
-    return read(contractsPageCacheKey(query), () => options.read(query));
+    return read(contractsPageCacheKey(query, options.municipality), () =>
+      options.read(query),
+    );
   };
 }
 
 export function createCachedContractReader(
-  options: Options & { read: (id: string) => Promise<ContractResult> },
+  options: Options & {
+    read: (id: string) => Promise<ContractResult>;
+    municipality?: DataMunicipality;
+  },
 ) {
+  const municipality = options.municipality ?? "porto-velho";
   // O schema aceita null para manter a resposta 404, mas esse resultado não é armazenado.
   const schema = z
     .object({
@@ -212,11 +279,26 @@ export function createCachedContractReader(
   const read = cachedReader(
     options,
     schema,
-    (result, key) =>
-      result.data !== null &&
-      result.data.sourceUrl === origin + "/" + result.data.id &&
-      contractCacheKey(result.data.id) === key,
+    (result, key) => {
+      if (!result.data) return false;
+      if (municipality !== "porto-velho") {
+        return (
+          result.data.sourceYear !== undefined &&
+          matchesPublicaContract(
+            result.data,
+            result.data.sourceYear,
+            municipality,
+          ) &&
+          contractCacheKey(result.data.id, municipality) === key
+        );
+      }
+      return (
+        result.data.sourceUrl === origin + "/" + result.data.id &&
+        contractCacheKey(result.data.id) === key
+      );
+    },
     (result) => result.data !== null,
   );
-  return (id: string) => read(contractCacheKey(id), () => options.read(id));
+  return (id: string) =>
+    read(contractCacheKey(id, options.municipality), () => options.read(id));
 }

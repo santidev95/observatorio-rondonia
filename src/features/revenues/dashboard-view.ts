@@ -1,4 +1,5 @@
 import type { RevenueSnapshot } from "@/core/revenues";
+import { dataMunicipality } from "@/core/municipal-sources";
 import { catalogPage, catalogQuery } from "../shared/catalog-query";
 import {
   filterRevenueEntries,
@@ -15,7 +16,13 @@ export function revenueDashboardView(
   query: string,
   latestYear = new Date().getUTCFullYear(),
 ) {
+  const city = dataMunicipality(snapshot.municipality ?? "porto-velho")!;
   const filters = readRevenueFilters(query, latestYear);
+  const aggregation = snapshot.aggregation ?? "documents";
+  if (aggregation === "annual-accounts") {
+    filters.month = "";
+    filters.kind = "budget";
+  }
   const entries = filterRevenueEntries(snapshot.entries, filters);
   const received = new Map(
     entries.map((entry) => [entry.id, periodValue(entry, filters.month)]),
@@ -40,6 +47,13 @@ export function revenueDashboardView(
   );
   return {
     latestYear,
+    municipality: snapshot.municipality ?? "porto-velho",
+    municipalityName: city.name,
+    company: city.company,
+    aggregation,
+    coverage: snapshot.coverage ?? "complete-source",
+    warnings: snapshot.warnings ?? [],
+    sourceUrl: snapshot.sourceUrl,
     filters,
     query: catalogQuery(revenueFilterQuery(filters, latestYear), page),
     generatedAt: snapshot.generatedAt,
@@ -52,7 +66,10 @@ export function revenueDashboardView(
     page,
     pages,
     totals: revenueTotals(entries, filters.month),
-    monthly: monthlyRevenueTotals(entries).map((totals, i) => ({
+    monthly: (aggregation === "annual-accounts"
+      ? []
+      : monthlyRevenueTotals(entries)
+    ).map((totals, i) => ({
       name: monthNames[i],
       month: i + 1,
       ...totals,
@@ -69,6 +86,8 @@ export function revenueDashboardView(
     ].sort(),
     rows: sorted.slice(start, end).map((e) => ({
       id: e.id,
+      sourceId: e.sourceId,
+      sourceUrl: e.sourceUrl,
       account: e.account,
       fundingSource: e.fundingSource,
       category: e.category,

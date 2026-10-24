@@ -6,10 +6,11 @@ import {
   REVENUE_RETRY_MS,
   type RevenueBackend,
 } from "./revenue-refresh";
-import type { RevenueSnapshot } from "./revenues";
+import type { RevenueMunicipality, RevenueSnapshot } from "./revenues";
 
 type Options = {
   backend: RevenueBackend;
+  municipality?: RevenueMunicipality;
   read: (
     year: number,
     signal: AbortSignal,
@@ -59,12 +60,18 @@ export function createRevenueWorker(options: Options) {
           await backend.legacy(year),
           year,
           now(),
+          options.municipality,
         );
         const result =
           legacy ??
           (await (async () => {
             const loaded = await options.read(year, combined);
-            return makeRevenueVersion(year, loaded.data, loaded.fetchedAt);
+            return makeRevenueVersion(
+              year,
+              loaded.data,
+              loaded.fetchedAt,
+              options.municipality,
+            );
           })());
         combined.throwIfAborted();
         const published = await backend.publish(year, token, result, {

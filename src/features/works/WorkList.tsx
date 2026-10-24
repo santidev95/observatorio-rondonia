@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FileSearch, Search, X } from "@/features/shared/icons";
 import type { Work } from "@/core/works";
+import type { DataMunicipality } from "@/core/municipal-sources";
 import { currency, dateLabel, percentLabel } from "@/features/shared/display";
 import { sentenceCase, workTitle } from "./presentation";
 import {
@@ -12,8 +13,7 @@ import {
   type Filters,
 } from "./filters";
 import {
-  WORK_POSITION_KEY,
-  WORK_RESTORE_KEY,
+  workStorageKeys,
   readWorkPage,
   rememberWorkPosition,
   worksUrl,
@@ -23,10 +23,17 @@ import { Status } from "./Status";
 export function WorkList({
   works,
   home = false,
+  municipality = "porto-velho",
+  year,
 }: {
   works: Work[];
   home?: boolean;
+  municipality?: DataMunicipality;
+  year?: number;
 }) {
+  const context = { municipality, year };
+  const storage = workStorageKeys(municipality);
+  const annual = municipality !== "porto-velho";
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [page, setPage] = useState(1);
   const [ready, setReady] = useState(false);
@@ -40,7 +47,7 @@ export function WorkList({
   const pages = Math.max(1, Math.ceil(filtered.length / limit));
   const currentPage = Math.min(page, pages);
   const shown = filtered.slice((currentPage - 1) * limit, currentPage * limit);
-  const listUrl = worksUrl(filters, currentPage);
+  const listUrl = worksUrl(filters, currentPage, context);
   const statuses = [...new Set(works.map((work) => work.status))].sort();
   const organizations = [
     ...new Map(
@@ -79,9 +86,9 @@ export function WorkList({
     };
     try {
       const saved = JSON.parse(
-        sessionStorage.getItem(WORK_POSITION_KEY) ?? "null",
+        sessionStorage.getItem(storage.position) ?? "null",
       );
-      const target = sessionStorage.getItem(WORK_RESTORE_KEY);
+      const target = sessionStorage.getItem(storage.restore);
       if (
         saved &&
         saved.url === target &&
@@ -90,14 +97,14 @@ export function WorkList({
         saved.y >= 0
       )
         restore.current = saved;
-      sessionStorage.removeItem(WORK_RESTORE_KEY);
+      sessionStorage.removeItem(storage.restore);
     } catch {
       /* Filters do not depend on browser storage. */
     }
     read();
     window.addEventListener("popstate", read);
     return () => window.removeEventListener("popstate", read);
-  }, [home]);
+  }, [home, municipality, year, storage.position, storage.restore]);
 
   useEffect(() => {
     if (!ready || !restore.current || restore.current.url !== listUrl) return;
@@ -119,16 +126,16 @@ export function WorkList({
     const next = { ...filters, ...patch };
     setFilters(next);
     setPage(1);
-    window.history.replaceState(null, "", worksUrl(next));
+    window.history.replaceState(null, "", worksUrl(next, 1, context));
   }
   function changePage(next: number) {
     setPage(next);
-    window.history.replaceState(null, "", worksUrl(filters, next));
+    window.history.replaceState(null, "", worksUrl(filters, next, context));
     results.current?.focus({ preventScroll: true });
     results.current?.scrollIntoView({ block: "start", behavior: "instant" });
   }
   const detailHref = (work: Work) =>
-    `/porto-velho/obras/${work.sourceId}/?from=${encodeURIComponent(listUrl)}`;
+    `/${municipality}/obras/${work.sourceId}/?${annual ? `ano=${year}&` : ""}from=${encodeURIComponent(listUrl)}`;
 
   return (
     <section
@@ -170,8 +177,7 @@ export function WorkList({
             )}
           </div>
           <p id="work-search-help" className="search-help">
-            Também busca contratos e empresas. Ex.: Flamboyant ou União
-            Bandeirantes.
+            Busca nos registros carregados de obras, por nome e localização.
           </p>
           <div className="work-filter-controls">
             <label className="work-filter">
@@ -266,7 +272,11 @@ export function WorkList({
                 onChange={(event) => update({ sort: event.target.value })}
               >
                 <option value="updated">Atualização da Prefeitura</option>
-                <option value="value">Maior valor contratado</option>
+                <option value="value">
+                  {annual
+                    ? "Maior valor total informado"
+                    : "Maior valor contratado"}
+                </option>
                 <option value="name">Nome da obra</option>
               </select>
             </label>
@@ -290,7 +300,9 @@ export function WorkList({
                       <th scope="col">Obra</th>
                       <th scope="col">Local e responsável</th>
                       <th scope="col" className="numeric">
-                        Contratado / pago
+                        {annual
+                          ? "Valor total informado / pago"
+                          : "Contratado / pago"}
                       </th>
                       <th scope="col">Situação</th>
                       <th scope="col">Percentual da fonte</th>
@@ -304,7 +316,7 @@ export function WorkList({
                             className="work-title"
                             href={detailHref(work)}
                             prefetch={false}
-                            onClick={rememberWorkPosition}
+                            onClick={() => rememberWorkPosition(municipality)}
                           >
                             {workTitle(work.title)}
                           </Link>
@@ -327,7 +339,11 @@ export function WorkList({
                         </td>
                         <td className="numeric">
                           <span className="money">
-                            {currency(work.contractedCents)}
+                            {currency(
+                              work.contractedCents ??
+                                work.declaredValueCents ??
+                                null,
+                            )}
                           </span>
                           <small className="paid-value">
                             Pago: {currency(work.paidCents)}
@@ -373,8 +389,16 @@ export function WorkList({
                     </p>
                     <dl className="card-values">
                       <div>
-                        <dt>Contratado</dt>
-                        <dd>{currency(work.contractedCents)}</dd>
+                        <dt>
+                          {annual ? "Valor total informado" : "Contratado"}
+                        </dt>
+                        <dd>
+                          {currency(
+                            work.contractedCents ??
+                              work.declaredValueCents ??
+                              null,
+                          )}
+                        </dd>
                       </div>
                       <div>
                         <dt>Pago</dt>
@@ -389,7 +413,7 @@ export function WorkList({
                       className="button button-secondary"
                       href={detailHref(work)}
                       prefetch={false}
-                      onClick={rememberWorkPosition}
+                      onClick={() => rememberWorkPosition(municipality)}
                       aria-label={`Ver detalhes de ${workTitle(work.title)}`}
                     >
                       Ver detalhes →
@@ -466,7 +490,7 @@ export function WorkList({
                 </button>
               </div>
             ) : (
-              <Link className="button" href="/porto-velho">
+              <Link className="button" href={"/" + municipality}>
                 Consultar fontes
               </Link>
             )}

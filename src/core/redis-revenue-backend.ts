@@ -2,12 +2,14 @@ import type { RedisScriptStore } from "./redis-cache-store";
 import {
   assertRevenueYear,
   currentRevenueYear,
-  REVENUE_PREFIX,
+  revenuePrefix,
+  parseRevenueVersion,
   REVENUE_LEASE_MS,
   type RevenueBackend,
   type RevenueAttempt,
   type RevenueVersion,
 } from "./revenue-refresh";
+import type { RevenueMunicipality } from "./revenues";
 
 // Todas as publicações conferem o proprietário da lease no mesmo script que grava.
 // Os timestamps de vencimento e agendamento são comparados com TIME do Redis.
@@ -21,8 +23,10 @@ const json = (raw: unknown) => {
 };
 export function createRedisRevenueBackend(
   store: RedisScriptStore,
-  prefix = REVENUE_PREFIX,
+  prefix?: string,
+  municipality: RevenueMunicipality = "porto-velho",
 ): RevenueBackend {
+  prefix ??= revenuePrefix(municipality);
   const queue = prefix + ":queue",
     heartbeat = prefix + ":heartbeat";
   const keys = (year: number) => {
@@ -142,7 +146,10 @@ export function createRedisRevenueBackend(
         )) === 1
       );
     },
-    publish: (year, token, version, next) => end(year, token, next, version),
+    publish: (year, token, version, next) =>
+      parseRevenueVersion(version, year, Date.now(), municipality)
+        ? end(year, token, next, version)
+        : Promise.resolve(false),
     async finish(year, token, next) {
       // retryAtMs é interno; o schema público lê apenas campos conhecidos.
       const stored =
@@ -165,6 +172,7 @@ export function createRedisRevenueBackend(
     },
     legacy: (year) => {
       assertRevenueYear(year);
+      if (municipality !== "porto-velho") return Promise.resolve(null);
       return store.get(
         `observatorio:RO:porto-velho:receitas:v1:year:${year}:portal:12535`,
       );

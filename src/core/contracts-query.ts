@@ -53,7 +53,7 @@ export function parseContractsQuery(
 export function isContractId(value: unknown): value is string {
   return (
     typeof value === "string" &&
-    /^[1-9]\d{0,15}$/.test(value) &&
-    Number.isSafeInteger(Number(value))
+    ((/^[1-9]\d{0,15}$/.test(value) && Number.isSafeInteger(Number(value))) ||
+      /^(?:20\d{2}|2100)-[A-Za-z0-9_-]{2,90}$/.test(value))
   );
 }

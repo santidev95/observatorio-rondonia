@@ -1,13 +1,15 @@
 import { getRevenues } from "@/lib/revenues";
 import { parseRevenueQuery } from "@/core/municipal-query";
 import { revenueHttpResponse } from "@/core/revenue-http";
+import { dataMunicipality } from "@/core/municipal-sources";
 export const runtime = "nodejs";
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ municipio: string }> },
 ) {
   const headers = { "Cache-Control": "no-store" };
-  if ((await params).municipio !== "porto-velho")
+  const city = dataMunicipality((await params).municipio);
+  if (!city)
     return Response.json(
       {
         error: {
@@ -35,5 +37,5 @@ export async function GET(
       { status: 400, headers },
     );
   }
-  return revenueHttpResponse(await getRevenues(year), true);
+  return revenueHttpResponse(await getRevenues(year, city.slug), true);
 }

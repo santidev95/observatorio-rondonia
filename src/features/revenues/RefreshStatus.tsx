@@ -2,14 +2,17 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { RevenueStatus } from "@/core/revenue-refresh";
+import type { DataMunicipality } from "@/core/municipal-sources";
 import { formatConsultationTime } from "@/features/contracts/format";
 
 export function RevenueRefreshStatus({
   year,
   initial,
+  municipality = "porto-velho",
 }: {
   year: number;
   initial: RevenueStatus;
+  municipality?: DataMunicipality;
 }) {
   const router = useRouter(),
     [status, setStatus] = useState(initial),
@@ -28,10 +31,13 @@ export function RevenueRefreshStatus({
       abort = new AbortController();
       let next = initial;
       try {
-        const r = await fetch(`/api/porto-velho/receitas/status?ano=${year}`, {
-          cache: "no-store",
-          signal: AbortSignal.any([abort.signal, AbortSignal.timeout(5000)]),
-        });
+        const r = await fetch(
+          `/api/${municipality}/receitas/status?ano=${year}`,
+          {
+            cache: "no-store",
+            signal: AbortSignal.any([abort.signal, AbortSignal.timeout(5000)]),
+          },
+        );
         const body = (await r.json()) as RevenueStatus;
         if (![200, 202, 503].includes(r.status) || !body.refresh || !body.cache)
           throw new Error("Estado indisponível");
@@ -74,7 +80,7 @@ export function RevenueRefreshStatus({
       clearTimeout(timer);
       abort?.abort();
     };
-  }, [year, initial, router, request]);
+  }, [year, initial, router, request, municipality]);
   const latest = status.fetchedAt
     ? formatConsultationTime(status.fetchedAt)
     : null;
