@@ -325,11 +325,11 @@ function decodedText(value: string): string {
       return point >= 0 && point <= 0x10ffff ? String.fromCodePoint(point) : "";
     })
     .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
     .replace(/&quot;/gi, '"')
-    .replace(/&apos;/gi, "'");
+    .replace(/&apos;/gi, "'")
+    .replace(/&amp;/gi, "&");
 }
 
 export function publicaText(value: unknown): string | null {
