@@ -1,3 +1,5 @@
+import { Group, Loader } from "@mantine/core";
+
 export default function Loading() {
   return (
     <main
@@ -5,7 +7,10 @@ export default function Loading() {
       className="container municipality-page"
       aria-busy="true"
     >
-      <p role="status">Consultando obras e contratos vinculados…</p>
+      <Group role="status" gap="md">
+        <Loader size="sm" aria-hidden="true" />
+        <p>Consultando obras e contratos vinculados…</p>
+      </Group>
     </main>
   );
 }

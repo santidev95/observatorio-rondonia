@@ -38,6 +38,12 @@ A bandeira representa o território. A interface identifica explicitamente o car
 
 ## Interface
 
+O sistema de componentes usa Mantine, com temas claro e escuro e a paleta amarela original. O tema fica em `src/theme/portal-theme.ts`, com cores em `src/theme/tokens.ts`, e é aplicado pelo `PortalProvider` do layout. A paleta `brand` e os tokens de cada modo alimentam também as variáveis CSS legadas, mantendo a mesma identidade no mapa, cabeçalho, fichas e componentes migrados.
+
+O seletor de sol/lua no cabeçalho alterna os modos; o escuro é o padrão inicial. A preferência fica no navegador pelo gerenciador de cores do Mantine e é aplicada antes da hidratação pelo `ColorSchemeScript`. Os fundos, textos, campos, tabelas, avisos e mapa acompanham a escolha. No modo claro, textos de destaque usam ocre para contraste; os preenchimentos mantêm o amarelo `#f2c230`. A bandeira conserva suas cores originais.
+
+Inputs, seletores nativos, botões, ícones de ação, cartões, badges, avisos, tabelas e paginação usam Mantine nas consultas. Alturas de toque, tipografia Geist e foco visível são configurados no tema. Menus e filtros conservam nomes em português, links municipais, parâmetros de consulta e comportamento de teclado. O mapa SVG, as cores da bandeira e os três estados da legenda permanecem próprios do projeto.
+
 Tema escuro, dourado nas ações, hierarquia tipográfica e foco visível. Cartões e navegação se adaptam a celular. Respeite preferência por movimento reduzido e mantenha links reconhecíveis.
 
 A tipografia Geist é compartilhada pela navegação, páginas municipais e consultas, servida localmente pelo Next.js. O texto de apoio usa `--dim: #b5aa94` para melhorar a leitura no tema escuro; os demais tokens de identidade são preservados.

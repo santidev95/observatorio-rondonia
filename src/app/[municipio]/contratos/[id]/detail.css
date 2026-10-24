@@ -195,7 +195,7 @@
 .contract-detail-unavailable {
   margin-block: 28px;
   padding: 24px;
-  border: 1px solid #695c35;
+  border: 1px solid var(--accent-border);
   border-radius: 8px;
   background: var(--surface-soft);
 }

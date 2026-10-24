@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Kbd,
+  NativeSelect,
+  Paper,
+  Table,
+  TextInput,
+} from "@mantine/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -125,107 +135,111 @@ export function ContractCatalog({
       aria-label="Consulta de contratos"
       aria-busy={pending}
     >
-      <div className="search-panel">
+      <Paper className="search-panel" withBorder radius="md">
         <h2 className="filters-heading">Filtros da consulta</h2>
-        <label className="search-field">
-          <Icon name="search" />
-          <span className="contracts-sr-only">
-            Buscar nesta página por contrato, objeto, empresa, documento ou
-            processo
-          </span>
-          <input
-            type="search"
-            placeholder="Buscar por contrato, objeto, empresa ou processo..."
-            value={filters.q}
-            maxLength={300}
-            aria-describedby="contract-filter-scope"
-            onChange={(event) => update({ q: event.target.value })}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") update({ q: "" });
-            }}
-          />
-          <kbd>ESC</kbd>
-        </label>
+        <TextInput
+          id="contract-page-search"
+          className="contract-search"
+          classNames={{ label: "contracts-sr-only" }}
+          label="Buscar nesta página por contrato, objeto, empresa, documento ou processo"
+          type="search"
+          size="md"
+          leftSection={<Icon name="search" />}
+          rightSection={<Kbd size="xs">ESC</Kbd>}
+          rightSectionWidth={56}
+          placeholder="Buscar por contrato, objeto, empresa ou processo..."
+          value={filters.q}
+          maxLength={300}
+          aria-describedby="contract-filter-scope"
+          onChange={(event) => update({ q: event.target.value })}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") update({ q: "" });
+          }}
+        />
         <div className="filter-row">
           <div className="filter-selects">
-            <label className="select-wrap">
-              <span className="filter-label">
-                Ano
-                <span className="contracts-sr-only"> solicitado à fonte</span>
-              </span>
-              <select
-                data-active={
-                  query.year !== null &&
-                  (municipality === "porto-velho" || query.year !== currentYear)
-                }
-                value={query.year ?? ""}
-                disabled={pending}
-                onChange={(event) =>
-                  navigateYear(
-                    event.target.value === ""
-                      ? null
-                      : Number(event.target.value),
-                  )
-                }
-              >
-                {municipality === "porto-velho" && (
-                  <option value="">Todos os anos</option>
-                )}
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="select-wrap">
-              <span className="filter-label">
-                Órgão<span className="contracts-sr-only"> nesta página</span>
-              </span>
-              <select
-                data-active={filters.org !== ""}
-                value={filters.org}
-                disabled={pending}
-                aria-describedby="contract-filter-scope"
-                onChange={(event) => update({ org: event.target.value })}
-              >
-                <option value="">Todos os órgãos</option>
-                {options.orgs.map((org) => (
-                  <option key={org} value={org}>
-                    {org}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="select-wrap">
-              <span className="filter-label">
-                Situação<span className="contracts-sr-only"> nesta página</span>
-              </span>
-              <select
-                data-active={filters.status !== ""}
-                value={filters.status}
-                disabled={pending}
-                aria-describedby="contract-filter-scope"
-                onChange={(event) => update({ status: event.target.value })}
-              >
-                <option value="">Todas as situações</option>
-                {options.statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <NativeSelect
+              id="contract-year"
+              className="select-wrap"
+              label={
+                <>
+                  Ano
+                  <span className="contracts-sr-only"> solicitado à fonte</span>
+                </>
+              }
+              data-active={
+                query.year !== null &&
+                (municipality === "porto-velho" || query.year !== currentYear)
+              }
+              value={query.year ?? ""}
+              disabled={pending}
+              onChange={(event) =>
+                navigateYear(
+                  event.target.value === "" ? null : Number(event.target.value),
+                )
+              }
+            >
+              {municipality === "porto-velho" && (
+                <option value="">Todos os anos</option>
+              )}
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </NativeSelect>
+            <NativeSelect
+              id="contract-department"
+              className="select-wrap"
+              label={
+                <>
+                  Órgão<span className="contracts-sr-only"> nesta página</span>
+                </>
+              }
+              data-active={filters.org !== ""}
+              value={filters.org}
+              disabled={pending}
+              aria-describedby="contract-filter-scope"
+              onChange={(event) => update({ org: event.target.value })}
+            >
+              <option value="">Todos os órgãos</option>
+              {options.orgs.map((org) => (
+                <option key={org} value={org}>
+                  {org}
+                </option>
+              ))}
+            </NativeSelect>
+            <NativeSelect
+              id="contract-status"
+              className="select-wrap"
+              label={
+                <>
+                  Situação
+                  <span className="contracts-sr-only"> nesta página</span>
+                </>
+              }
+              data-active={filters.status !== ""}
+              value={filters.status}
+              disabled={pending}
+              aria-describedby="contract-filter-scope"
+              onChange={(event) => update({ status: event.target.value })}
+            >
+              <option value="">Todas as situações</option>
+              {options.statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </NativeSelect>
             {active && (
-              <button
-                className="clear-button"
+              <Button
                 type="button"
                 disabled={pending}
+                leftSection={<Icon name="close" size={14} />}
                 onClick={clear}
               >
-                <Icon name="close" size={13} />
                 Limpar filtros
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -237,31 +251,31 @@ export function ContractCatalog({
               " de " + catalog.records.length}{" "}
             contratos nesta página
           </span>
-          <label className="sort-select">
-            Ordenar por
-            <select
-              data-active={filters.sort !== "source"}
-              value={filters.sort}
-              disabled={pending}
-              aria-describedby="contract-filter-scope"
-              onChange={(event) =>
-                update({
-                  sort: event.target.value as ContractPageFilters["sort"],
-                })
-              }
-            >
-              <option value="source">Ordem da fonte</option>
-              <option value="updated">Atualização da fonte</option>
-              <option value="signed">Assinatura mais recente</option>
-              <option value="value">Maior valor</option>
-            </select>
-          </label>
+          <NativeSelect
+            id="contract-sort"
+            className="sort-select"
+            label="Ordenar por"
+            data-active={filters.sort !== "source"}
+            value={filters.sort}
+            disabled={pending}
+            aria-describedby="contract-filter-scope"
+            onChange={(event) =>
+              update({
+                sort: event.target.value as ContractPageFilters["sort"],
+              })
+            }
+          >
+            <option value="source">Ordem da fonte</option>
+            <option value="updated">Atualização da fonte</option>
+            <option value="signed">Assinatura mais recente</option>
+            <option value="value">Maior valor</option>
+          </NativeSelect>
         </div>
         <p id="contract-filter-scope" className="filter-scope">
           Busca, órgão, situação e ordenação se aplicam somente aos registros
           desta página. O ano é solicitado à API.
         </p>
-      </div>
+      </Paper>
       {pending && (
         <p className="contracts-sr-only" role="status">
           Atualizando contratos...
@@ -286,29 +300,29 @@ export function ContractCatalog({
             role="region"
             aria-label="Tabela de contratos; role horizontalmente em telas pequenas"
           >
-            <table className="contracts-table">
-              <caption className="contracts-sr-only">
+            <Table className="contracts-table">
+              <Table.Caption className="contracts-sr-only">
                 Contratos municipais nesta página da API que correspondem aos
                 filtros locais
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Contrato e objeto</th>
-                  <th scope="col">Empresa e órgão</th>
-                  <th scope="col" className="numeric">
+              </Table.Caption>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th scope="col">Contrato e objeto</Table.Th>
+                  <Table.Th scope="col">Empresa e órgão</Table.Th>
+                  <Table.Th scope="col" className="numeric">
                     Valor informado
-                  </th>
-                  <th scope="col">Vigência</th>
-                  <th scope="col">Situação</th>
-                  <th scope="col" className="action-column">
+                  </Table.Th>
+                  <Table.Th scope="col">Vigência</Table.Th>
+                  <Table.Th scope="col">Situação</Table.Th>
+                  <Table.Th scope="col" className="action-column">
                     <span className="contracts-sr-only">Detalhes</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
                 {shown.map((contract) => (
-                  <tr key={contract.id}>
-                    <th scope="row">
+                  <Table.Tr key={contract.id}>
+                    <Table.Th scope="row">
                       <Link
                         className="contract-number"
                         href={detailUrl(contract.id)}
@@ -328,36 +342,44 @@ export function ContractCatalog({
                         {" · Ano informado: "}
                         {contract.year ?? "Não informado"}
                       </small>
-                    </th>
-                    <td>
+                    </Table.Th>
+                    <Table.Td>
                       <span className="contract-supplier">
                         {contractSuppliers(contract)}
                       </span>
                       <small className="contract-meta">
                         {contractDepartment(contract)}
                       </small>
-                    </td>
-                    <td className="numeric">
+                    </Table.Td>
+                    <Table.Td className="numeric">
                       <strong className="money">
                         {formatContractMoney(contract.amountCents)}
                       </strong>
-                    </td>
-                    <td>
+                    </Table.Td>
+                    <Table.Td>
                       <span className="contract-date">
                         {formatContractDate(contract.startsOn)}
                       </span>
                       <small className="contract-meta">
                         até {formatContractDate(contract.endsOn)}
                       </small>
-                    </td>
-                    <td>
-                      <span className="contract-status">
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge
+                        className="contract-status"
+                        color="gray"
+                        variant="light"
+                        radius="sm"
+                      >
                         {contract.status ?? "Não informada"}
-                      </span>
-                    </td>
-                    <td className="action-column">
-                      <Link
-                        className="row-button"
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td className="action-column">
+                      <ActionIcon
+                        component={Link}
+                        className="contract-row-action"
+                        variant="light"
+                        size={44}
                         href={detailUrl(contract.id)}
                         aria-label={
                           "Ver detalhes do contrato " +
@@ -367,12 +389,12 @@ export function ContractCatalog({
                         prefetch={false}
                       >
                         <Icon name="chevron" />
-                      </Link>
-                    </td>
-                  </tr>
+                      </ActionIcon>
+                    </Table.Td>
+                  </Table.Tr>
                 ))}
-              </tbody>
-            </table>
+              </Table.Tbody>
+            </Table>
           </div>
         </div>
       ) : (
@@ -384,9 +406,9 @@ export function ContractCatalog({
               : "A fonte não retornou registros para esta página e ano solicitado."}
           </p>
           {active && (
-            <button className="clear-button" type="button" onClick={clear}>
+            <Button type="button" onClick={clear}>
               Limpar filtros
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -408,33 +430,35 @@ export function ContractCatalog({
           aria-label="Paginação dos contratos"
         >
           {page > 1 ? (
-            <Link
+            <Button
+              component={Link}
               href={pageUrl(page - 1, query.year, municipality)}
               rel="prev"
               prefetch={false}
             >
               Anterior
-            </Link>
+            </Button>
           ) : (
-            <span className="is-disabled" aria-disabled="true">
+            <Button type="button" disabled>
               Anterior
-            </span>
+            </Button>
           )}
           <span aria-current="page">
             Página {page} de {pages}
           </span>
           {page < pages ? (
-            <Link
+            <Button
+              component={Link}
               href={pageUrl(page + 1, query.year, municipality)}
               rel="next"
               prefetch={false}
             >
               Próxima
-            </Link>
+            </Button>
           ) : (
-            <span className="is-disabled" aria-disabled="true">
+            <Button type="button" disabled>
               Próxima
-            </span>
+            </Button>
           )}
         </nav>
       </div>

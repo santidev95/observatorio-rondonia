@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Alert, Button, TextInput } from "@mantine/core";
+import { LinkButton } from "@/components/link-button";
 import { Geist } from "next/font/google";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
@@ -56,13 +58,14 @@ export default async function Works({ params, searchParams }: Props) {
           </p>
         </div>
         {result && (
-          <a
-            className="button button-secondary"
+          <LinkButton
+            external
+            variant="default"
             href={`/api/${city.slug}/obras${city.annual ? `?ano=${year}` : ""}`}
             download
           >
             Baixar dados — JSON
-          </a>
+          </LinkButton>
         )}
       </div>
       {city.annual && (
@@ -70,20 +73,18 @@ export default async function Works({ params, searchParams }: Props) {
           action={`/${city.slug}/obras`}
           className="search-panel revenue-filters revenue-initial-filters"
         >
-          <label>
-            Exercício{" "}
-            <input
-              type="number"
-              name="ano"
-              min={2000}
-              max={2100}
-              defaultValue={year}
-              required
-            />
-          </label>
-          <button className="button button-secondary" type="submit">
+          <TextInput
+            label="Exercício"
+            type="number"
+            name="ano"
+            min={2000}
+            max={2100}
+            defaultValue={year}
+            required
+          />
+          <Button variant="default" type="submit">
             Consultar exercício
-          </button>
+          </Button>
         </form>
       )}
       {result ? (
@@ -127,12 +128,12 @@ export default async function Works({ params, searchParams }: Props) {
           </p>
         </>
       ) : (
-        <section className="notice error" role="status">
+        <Alert color="red" className="notice error" role="status">
           <h2>Consulta indisponível</h2>
           <p>
             {problem} <a href={city.works}>Acessar fonte oficial ↗</a>
           </p>
-        </section>
+        </Alert>
       )}
     </main>
   );

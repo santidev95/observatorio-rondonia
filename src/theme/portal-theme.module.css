@@ -1,0 +1,79 @@
+.input:global(.mantine-Input-input) {
+  min-height: 48px;
+  background-color: var(--deep);
+  border-color: var(--field-border);
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.input::placeholder {
+  color: var(--dim);
+  opacity: 1;
+}
+
+.input:focus {
+  border-color: var(--gold);
+}
+
+.label:global(.mantine-InputWrapper-label) {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.description:global(.mantine-InputWrapper-description) {
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.button:global(.mantine-Button-root) {
+  min-height: 48px;
+  font-weight: 600;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.button:focus-visible,
+.actionIcon:focus-visible,
+.paginationControl:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.actionIcon:global(.mantine-ActionIcon-root) {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.badge:global(.mantine-Badge-root) {
+  text-transform: none;
+  font-weight: 600;
+}
+
+.alert:global(.mantine-Alert-root) {
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--alert-color) 45%, transparent);
+  color: var(--ink);
+}
+
+.alertTitle:global(.mantine-Alert-title) {
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.paginationControl:global(.mantine-Pagination-control) {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .actionIcon,
+  .input,
+  .paginationControl {
+    transition: none;
+  }
+}

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LinkButton } from "@/components/link-button";
 export default function NotFound() {
   return (
     <main id="conteudo" className="container empty-page">
@@ -7,9 +7,9 @@ export default function NotFound() {
       <p>
         Consulte os municípios cadastrados e o planejamento das integrações.
       </p>
-      <Link className="button" href="/">
+      <LinkButton variant="filled" href="/">
         Voltar ao início
-      </Link>
+      </LinkButton>
     </main>
   );
 }

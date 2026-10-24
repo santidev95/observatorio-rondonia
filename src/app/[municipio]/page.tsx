@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Badge, Paper, ThemeIcon } from "@mantine/core";
+import { LinkButton } from "@/components/link-button";
 import { notFound } from "next/navigation";
 import { getMunicipality, listMunicipalities } from "@/municipalities";
 import { moduleIds, moduleLabels } from "@/core/municipality";
@@ -82,18 +84,23 @@ export default async function MunicipalityPage({ params }: Props) {
             const available =
               integrated && city.modules[id].status === "available";
             return (
-              <article className="module-card" key={id}>
+              <Paper component="article" className="module-card" key={id}>
                 <div className="module-card-top">
-                  <span className="module-icon">
+                  <ThemeIcon
+                    className="module-icon"
+                    size={48}
+                    variant="light"
+                    color={available ? "brand" : "gray"}
+                  >
                     <Icon size={24} />
-                  </span>
-                  <span className={`badge${available ? " badge-gold" : ""}`}>
+                  </ThemeIcon>
+                  <Badge color={available ? "brand" : "gray"} variant="light">
                     {city.modules[id].status === "available"
                       ? "Disponível"
                       : city.modules[id].status === "not-started"
                         ? "Não iniciada"
                         : "Em preparação"}
-                  </span>
+                  </Badge>
                 </div>
                 <h3>{moduleLabels[id]}</h3>
                 <p>
@@ -102,16 +109,16 @@ export default async function MunicipalityPage({ params }: Props) {
                     : city.modules[id].note}
                 </p>
                 {available && (
-                  <Link
+                  <LinkButton
                     href={"/" + city.slug + "/" + id}
-                    prefetch={false}
                     className="module-action"
+                    justify="space-between"
+                    rightSection={<span aria-hidden="true">→</span>}
                   >
-                    Consultar {moduleLabels[id]}{" "}
-                    <span aria-hidden="true">→</span>
-                  </Link>
+                    Consultar {moduleLabels[id]}
+                  </LinkButton>
                 )}
-              </article>
+              </Paper>
             );
           })}
         </div>
@@ -122,7 +129,7 @@ export default async function MunicipalityPage({ params }: Props) {
           </p>
         )}
       </section>
-      <section className="contribution-panel">
+      <Paper component="section" className="contribution-panel">
         <h2>
           {integrated
             ? "Ajude a melhorar o Observatório."
@@ -132,13 +139,15 @@ export default async function MunicipalityPage({ params }: Props) {
           Você pode indicar fontes oficiais, documentar a API e contribuir com
           código e testes.
         </p>
-        <a
-          className="button"
+        <LinkButton
+          external
+          variant="filled"
           href={repositoryUrl + "/blob/master/CONTRIBUTING.md"}
+          rightSection={<span aria-hidden="true">↗</span>}
         >
-          Como contribuir <span aria-hidden="true">↗</span>
-        </a>
-      </section>
+          Como contribuir
+        </LinkButton>
+      </Paper>
     </main>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Alert, Button, TextInput } from "@mantine/core";
 import { RevenueDashboard } from "@/features/revenues/Dashboard";
 import { getRevenues } from "@/lib/revenues";
 import { notFound } from "next/navigation";
@@ -112,29 +113,27 @@ export default async function RevenuePage({
           action={"/" + city.slug + "/receitas"}
           className="search-panel revenue-filters revenue-initial-filters"
         >
-          <label>
-            Exercício
-            <input
-              type="number"
-              name="ano"
-              min={municipalYear() - 1}
-              max={municipalYear()}
-              defaultValue={year}
-              required
-            />
-          </label>
-          <button type="submit" className="button button-secondary">
+          <TextInput
+            label="Exercício"
+            type="number"
+            name="ano"
+            min={municipalYear() - 1}
+            max={municipalYear()}
+            defaultValue={year}
+            required
+          />
+          <Button type="submit" variant="default">
             Consultar exercício
-          </button>
+          </Button>
           <a href={city.revenues}>Consultar fonte oficial ↗</a>
         </form>
       )}
       {view ? (
         <RevenueDashboard view={view} />
       ) : problem ? (
-        <div className="notice" role="status">
+        <Alert color="red" className="notice" role="status">
           {problem} <a href={city.revenues}>Consultar fonte oficial ↗</a>
-        </div>
+        </Alert>
       ) : null}
       {result?.data && (
         <details className="catalog-provenance">

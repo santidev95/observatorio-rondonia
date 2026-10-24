@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LinkButton } from "@/components/link-button";
 import { MunicipalMap } from "@/components/municipal-map";
 import { MunicipalitySearch } from "@/components/municipality-search";
 import { listMunicipalities } from "@/municipalities";
@@ -21,13 +22,19 @@ export default function HomePage() {
       </div>
       <div className="municipality-toolbar">
         <MunicipalitySearch municipalities={municipalities} />
-        <Link href="/porto-velho" className="pilot-shortcut" prefetch={false}>
+        <LinkButton
+          href="/porto-velho"
+          className="pilot-shortcut"
+          variant="default"
+          justify="space-between"
+          style={{ padding: "10px 15px" }}
+          rightSection={<span aria-hidden="true">→</span>}
+        >
           <span>
             <small>OBRAS, CONTRATOS E RECEITAS</small>
             <strong>Consultar Porto Velho</strong>
           </span>
-          <span aria-hidden="true">→</span>
-        </Link>
+        </LinkButton>
       </div>
       <MunicipalMap municipalities={municipalities} />
       <noscript>
