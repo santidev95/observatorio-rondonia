@@ -4,6 +4,13 @@ import type { ContractsQuery } from "./contracts";
 export type DataMunicipality = "porto-velho" | "ji-parana" | "ariquemes";
 export type PublicaMunicipality = Exclude<DataMunicipality, "porto-velho">;
 export const publicaMunicipalities = ["ji-parana", "ariquemes"] as const;
+// Cada prefeitura entra aqui somente depois de validar a própria fonte.
+export const expensesMunicipalities = ["ariquemes"] as const;
+export type ExpensesMunicipality = (typeof expensesMunicipalities)[number];
+// Primeiro exercício entregue pela fonte em 05/11/2026; os anteriores retornam erro 5xx.
+export const expensesFirstYear: Record<ExpensesMunicipality, number> = {
+  ariquemes: 2017,
+};
 const sources = {
   "porto-velho": {
     slug: "porto-velho",
@@ -50,6 +57,11 @@ export function publicaSource(municipality: PublicaMunicipality) {
   if (!publicaMunicipalities.includes(municipality))
     throw new Error("Município sem conector Pública");
   return sources[municipality];
+}
+export function isExpensesMunicipality(
+  slug: string,
+): slug is ExpensesMunicipality {
+  return (expensesMunicipalities as readonly string[]).includes(slug);
 }
 export function municipalYear(now = Date.now()) {
   return Number(

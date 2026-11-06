@@ -13,6 +13,7 @@ import {
   ariquemesSource,
   ariquemesWorksSource,
   ariquemesRevenuesSource,
+  ariquemesExpensesSource,
 } from "../src/connectors/ariquemes/definition";
 import { dataMunicipality } from "../src/core/municipal-sources";
 
@@ -30,7 +31,7 @@ test("municípios têm slugs únicos e não anunciam dados ainda não integrados
     const pilot = city.slug in available;
     assert.equal(city.stage, pilot ? "pilot" : "not-started");
     for (const module of moduleIds) {
-      if (pilot) {
+      if (module === "despesas" ? city.slug === "ariquemes" : pilot) {
         assert.equal(city.modules[module].status, "available");
         assert.equal(city.modules[module].connectorId, available[city.slug]);
       } else {
@@ -62,7 +63,7 @@ test("chaves de snapshot isolam município, módulo e versão", () => {
         moduleIds.map((module) => snapshotKey(city, module)),
       ),
     ).size,
-    9,
+    3 * moduleIds.length,
   );
   assert.throws(() => snapshotKey("porto-velho:obras", "contratos"));
 });
@@ -112,6 +113,7 @@ test("conectores implementados de Ariquemes correspondem à Prefeitura UG 1 do c
     ariquemesSource,
     ariquemesWorksSource,
     ariquemesRevenuesSource,
+    ariquemesExpensesSource,
   ]) {
     assert.equal(source.id, ariquemesSource.id);
     assert.equal(source.id, city.modules[source.module].connectorId);

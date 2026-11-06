@@ -90,12 +90,13 @@ function createPublicaTransport(municipality: PublicaMunicipality) {
     path: string | URL,
     signal: AbortSignal,
     fetcher: typeof fetch = publicaFetch,
+    timeoutMs = 12000,
   ): Promise<unknown> {
     signal.throwIfAborted();
     const url = publicaUrl(path);
     const controller = new AbortController();
     const abort = () => controller.abort();
-    const timer = setTimeout(abort, 12000);
+    const timer = setTimeout(abort, timeoutMs);
     signal.addEventListener("abort", abort, { once: true });
     if (signal.aborted) abort();
     let response: Response | undefined;
@@ -187,6 +188,23 @@ function createPublicaTransport(municipality: PublicaMunicipality) {
         : envelope
           ? null
           : body;
+    return parsePublicaPage(
+      candidate,
+      url,
+      page,
+      allowMissingLastRecord,
+      allowShortPages && envelope === undefined,
+    );
+  }
+
+  // Valida o envelope de paginação recebido, inclusive quando vem aninhado.
+  function parsePublicaPage(
+    candidate: unknown,
+    url: URL,
+    page: number,
+    allowMissingLastRecord = false,
+    allowShortPages = false,
+  ): PublicaPage {
     const parsed = pageSchema.safeParse(candidate);
     if (!parsed.success)
       throw new Error(
@@ -212,7 +230,6 @@ function createPublicaTransport(municipality: PublicaMunicipality) {
     const shortWorksPage =
       allowShortPages &&
       municipality === "ariquemes" &&
-      envelope === undefined &&
       /^\/api\/obras\/(20\d{2}|2100)\/1$/.test(url.pathname) &&
       received < count;
     if (received !== count && !missingLastRecord && !shortWorksPage)
@@ -302,6 +319,7 @@ function createPublicaTransport(municipality: PublicaMunicipality) {
     url: publicaUrl,
     fetchJson: fetchPublicaJson,
     readPage: readPublicaPage,
+    parsePage: parsePublicaPage,
     collectPages: collectPublicaPages,
     configureRateLimit,
     currentYear,

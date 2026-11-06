@@ -22,9 +22,11 @@ const municipalities: Municipality[] = geography.municipalities.map((city) => {
     name: city.name,
     state: "RO",
     stage: pilot ? "pilot" : "not-started",
-    description: pilot
-      ? `Consulte Obras, Contratos e Receitas de ${city.name}, com fontes oficiais e limites de cobertura por módulo.`
-      : "A integração deste município ainda não foi iniciada. As fontes e a cobertura precisam ser levantadas.",
+    description: ariquemes
+      ? `Consulte Obras, Contratos, Receitas e Despesas de ${city.name}, com fontes oficiais e limites de cobertura por módulo.`
+      : pilot
+        ? `Consulte Obras, Contratos e Receitas de ${city.name}, com fontes oficiais e limites de cobertura por módulo.`
+        : "A integração deste município ainda não foi iniciada. As fontes e a cobertura precisam ser levantadas.",
     modules: {
       contratos: {
         status: pilot ? "available" : "not-started",
@@ -42,6 +44,11 @@ const municipalities: Municipality[] = geography.municipalities.map((city) => {
         status: pilot ? "available" : "not-started",
         connectorId,
         note,
+      },
+      despesas: {
+        status: ariquemes ? "available" : "not-started",
+        connectorId: ariquemes ? connectorId : null,
+        note: ariquemes ? note : "Fonte e cobertura ainda não verificadas.",
       },
     },
   });

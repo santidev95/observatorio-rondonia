@@ -1,5 +1,12 @@
 # Changelog
 
+## [Não lançado]
+
+### Integrações municipais
+
+- Despesas da Prefeitura de Ariquemes (UG 1): empenhos e pagamentos por exercício, uma página da fonte por consulta, com cache de uma hora e download em JSON.
+- Totais exibidos como informados pela fonte, sem soma entre etapas. Credores sem CNPJ não têm nome nem documento republicados.
+
 ## [0.4.1] — 2026-10-24
 
 ## Alterações de Tema

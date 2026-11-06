@@ -1,4 +1,4 @@
-import type { ModuleId } from "./municipality";
+import { moduleIds, type ModuleId } from "./municipality";
 
 // Contrato inicial. A coleta e o armazenamento serão implementados por etapas.
 export interface SourceReference {
@@ -32,7 +32,6 @@ export interface MunicipalConnector {
 export function snapshotKey(municipality: string, module: ModuleId): string {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(municipality))
     throw new Error("Slug de município inválido.");
-  if (!["contratos", "obras", "receitas"].includes(module))
-    throw new Error("Módulo inválido.");
+  if (!moduleIds.includes(module)) throw new Error("Módulo inválido.");
   return `observatorio:ro:${municipality}:${module}:v1:latest`;
 }

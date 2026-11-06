@@ -2,11 +2,11 @@
 
 ## Escopo e fonte
 
-A terceira integração implementa localmente Contratos, Obras e Receitas da Prefeitura de Ariquemes. Fonte: [Portal da Transparência](https://transparencia.ariquemes.ro.gov.br/) e [documentação da API Pública](https://transparencia.ariquemes.ro.gov.br/api/doc). A configuração usa `https://transparencia.ariquemes.ro.gov.br`, **UG 1 = Prefeitura**. A UG 2 é a Câmara e não integra este recorte. Essa numeração difere de Ji-Paraná, cuja Prefeitura usa UG 2; não é herdada automaticamente.
+A terceira integração implementa Contratos, Obras, Receitas e Despesas da Prefeitura de Ariquemes. Contratos, Obras e Receitas foram publicados na v0.4.0, com deploy em 24/10/2026; Despesas ainda não foi publicada. Fonte: [Portal da Transparência](https://transparencia.ariquemes.ro.gov.br/) e [documentação da API Pública](https://transparencia.ariquemes.ro.gov.br/api/doc). A configuração usa `https://transparencia.ariquemes.ro.gov.br`, **UG 1 = Prefeitura**. A UG 2 é a Câmara e não integra este recorte. Essa numeração difere de Ji-Paraná, cuja Prefeitura usa UG 2; não é herdada automaticamente.
 
 Os algoritmos da plataforma ficam em `src/connectors/publica/`, com wrappers municipais em `src/connectors/ariquemes/`. Host, UG, IDs, chaves de cache e limitador são isolados por município. A semelhança da plataforma não comprova igualdade de cobertura ou disponibilidade entre prefeituras.
 
-Todos os módulos exigem exercício; a omissão escolhe o ano corrente no fuso de Rondônia. Contratos e Obras aceitam de 2000 a 2100 sem prometer dados para todos os anos. A interface de Receitas permite o exercício corrente e o anterior. Implementação, testes e consultas locais não comprovam CI remoto, deploy ou disponibilidade em produção.
+Todos os módulos exigem exercício; a omissão escolhe o ano corrente no fuso de Rondônia. Contratos, Obras e Despesas aceitam de 2000 a 2100 sem prometer dados para todos os anos. A interface de Receitas permite o exercício corrente e o anterior. Implementação, testes e consultas locais não comprovam CI remoto, deploy ou disponibilidade em produção.
 
 ## Contratos
 
@@ -40,6 +40,22 @@ O contrato normalizado usa `complete: false`, `total` igual à quantidade de obr
 
 Essa consulta parcial não é gravada nem reutilizada no Redis e não substitui uma carga completa válida. A regra é exclusiva de Obras da Prefeitura de Ariquemes (UG 1); Contratos, Receitas e a exceção unitária de Ji-Paraná mantêm suas validações próprias. As contagens da interface são dinâmicas e continuam sujeitas ao comportamento da fonte.
 
+## Despesas
+
+Endpoints: `/api/despesas/empenhos/{exercicio}/1` e `/api/despesas/pagamentos/{exercicio}/1`, somente UG 1. Em amostra de 03/11/2026, o exercício de 2026 declarou 6.627 empenhos (663 páginas) e 10.081 pagamentos (1.009 páginas), com 10 registros por página. A coleta completa levaria cerca de 31 minutos no ritmo de 1,1 s por página, por isso **cada consulta lê uma única página da fonte**, com cache de uma hora por exercício, visão e página. Não há coleta em massa, nem histórico.
+
+Em 05/11/2026, a fonte entregou Despesas de 2017 em diante e retornou erro 5xx nos exercícios consultados de 2000, 2012 a 2016; por isso o seletor começa em 2017. A rota continua aceitando o intervalo geral e informa indisponibilidade nesses anos. A primeira leitura de um exercício é lenta (até 13,8 s na amostra, cerca de 2,5 s nas seguintes), então esse módulo aguarda até 25 s pela fonte, contra 12 s dos demais.
+
+A fonte só filtra por `pkemp`, então não há busca no catálogo inteiro. A ordem é a da fonte: não segue `PKEMP`, e a estabilidade entre consultas não foi comprovada, de modo que um registro pode mudar de página.
+
+A paginação vem em `empenhos.empenhos` ou `pagamentos.pagamentos`, ao lado de `totais`, que se referem ao exercício inteiro. Os totais são exibidos como informados pela fonte: o Observatório não os soma nem os confere linha a linha. Na amostra, `TOTAL_PAGO` coincidiu entre as duas rotas, o que é um indício de coerência, não uma prova. Empenhado, liquidado e pago são etapas da mesma despesa e não são somados entre si.
+
+Os valores preservam o sinal publicado: linhas com `TPEM` igual a `AN` apresentaram `EMPENHADO` e `ANULADO` negativos. A documentação da API não define `TPEM`, então o código é exibido como publicado, sem tradução. `EXERCICIO`, em pagamentos, é preservado em `commitmentYear` sem presumir o critério da fonte.
+
+A API mascara o CPF (`***.999.999-**`), mas publica o nome. Credores sem CNPJ válido aparecem sem nome e sem documento: "Pessoa física (nome não republicado)" ou, quando não há como classificar, "Credor sem CNPJ (nome não republicado)". `CODIF` não é republicado, para não permitir o agrupamento de pagamentos de uma mesma pessoa. Cerca de 40% dos empenhos da amostra (8 de 20) tinham CPF mascarado.
+
+O ID de empenho combina exercício e `PKEMP`; o de pagamento, exercício, `PKEMP`, `NUMSUB` e `ORDPGSEQ`. Essa unicidade foi observada em páginas de amostra, não no catálogo inteiro; IDs repetidos em uma página bloqueiam a publicação daquela página. A rota de pagamentos não informa a UG em número, e o escopo depende do caminho consultado. Fichas individuais, liquidações, ordem cronológica e a Câmara (UG 2) não fazem parte deste recorte.
+
 ## Receitas
 
 O recorte é **parcial**, composto por três listas anuais da Prefeitura UG 1:
@@ -56,6 +72,8 @@ O snapshot usa `aggregation: "annual-accounts"` e `coverage: "partial"`. Não h�
 
 Contratos e catálogos completos de Obras usam Redis por uma hora, com chaves `observatorio:RO:ariquemes:<módulo>:v1:...`; Obras acrescenta `year:<ano>:catalog`. Somente resultados normalizados e validados são armazenados, preservando o horário original. Hits não estendem a validade; erros, respostas brutas e consultas parciais não são cacheados. Uma consulta parcial não substitui uma carga completa válida. Sem Redis, esses módulos podem consultar a API diretamente.
 
+Despesas usa Redis por uma hora, com a chave `observatorio:RO:ariquemes:despesas:v1:year:<ano>:view:<visão>:page:<página>`. Cada página é lida sob demanda em cache miss, sem worker, e sem Redis a consulta vai direto à API. Vale a mesma regra de armazenar somente resultados normalizados e validados, preservando o horário original.
+
 Receitas depende do Redis e do serviço Node/Docker `revenues-worker`, com namespace `observatorio:RO:ariquemes:receitas:v2`, fila e lease próprios. O ano corrente é renovado após uma hora e outro exercício consultado após um dia; a última versão válida fica retida por até sete dias. Falhas preservam a versão anterior dentro da retenção. As requisições de página e JSON leem Redis e solicitam atualização à fila, sem coletar a fonte. O limitador é isolado por município e compartilhado entre site e worker.
 
 Use Node.js 22 conforme `.node-version`, `.env.local` próprio e `.env.example`. Para executar os serviços locais:
@@ -64,15 +82,16 @@ Use Node.js 22 conforme `.node-version`, `.env.local` próprio e `.env.example`.
 rtk proxy docker compose up --build -d
 ```
 
-| Módulo    | Página                                 | JSON                                       |
-| --------- | -------------------------------------- | ------------------------------------------ |
-| Contratos | `/ariquemes/contratos?ano=2026&page=1` | `/api/ariquemes/contratos?ano=2026&page=1` |
-| Obras     | `/ariquemes/obras?ano=2026`            | `/api/ariquemes/obras?ano=2026`            |
-| Receitas  | `/ariquemes/receitas?ano=2026`         | `/api/ariquemes/receitas?ano=2026`         |
+| Módulo    | Página                                               | JSON                                                     |
+| --------- | ---------------------------------------------------- | -------------------------------------------------------- |
+| Contratos | `/ariquemes/contratos?ano=2026&page=1`               | `/api/ariquemes/contratos?ano=2026&page=1`               |
+| Obras     | `/ariquemes/obras?ano=2026`                          | `/api/ariquemes/obras?ano=2026`                          |
+| Receitas  | `/ariquemes/receitas?ano=2026`                       | `/api/ariquemes/receitas?ano=2026`                       |
+| Despesas  | `/ariquemes/despesas?visao=empenhos&ano=2026&page=1` | `/api/ariquemes/despesas?visao=empenhos&ano=2026&page=1` |
 
-O estado de atualização fica em `/api/ariquemes/receitas/status?ano=2026`, sem consulta à fonte. Receitas retorna 200 (`ready`), 202 (`pending`) ou 503 (`unavailable`); filtros inválidos geram 400. As respostas JSON usam `Cache-Control: no-store`.
+O estado de atualização fica em `/api/ariquemes/receitas/status?ano=2026`, sem consulta à fonte. Receitas retorna 200 (`ready`), 202 (`pending`) ou 503 (`unavailable`); filtros inválidos geram 400. Em Despesas, `visao` aceita `empenhos` ou `pagamentos`. As respostas JSON usam `Cache-Control: no-store`.
 
-Abrir Contratos/Obras pode consultar a Prefeitura em cache miss. Iniciar o worker agenda o ano corrente e pode coletar Receitas. Testes automatizados usam fixtures sintéticas, sem registros municipais reais. Não há arquivo histórico durável implementado; Redis é temporário.
+Abrir Contratos, Obras ou Despesas pode consultar a Prefeitura em cache miss. Iniciar o worker agenda o ano corrente e pode coletar Receitas. Testes automatizados usam fixtures sintéticas, sem registros municipais reais. Não há arquivo histórico durável implementado; Redis é temporário.
 
 ## Evidência da validação
 

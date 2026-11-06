@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-export const moduleIds = ["contratos", "obras", "receitas"] as const;
+export const moduleIds = [
+  "contratos",
+  "obras",
+  "receitas",
+  "despesas",
+] as const;
 export const moduleIdSchema = z.enum(moduleIds);
 export type ModuleId = z.infer<typeof moduleIdSchema>;
 
@@ -28,6 +33,7 @@ export const municipalitySchema = z.object({
     contratos: capabilitySchema,
     obras: capabilitySchema,
     receitas: capabilitySchema,
+    despesas: capabilitySchema,
   }),
 });
 export type Municipality = z.infer<typeof municipalitySchema>;
@@ -36,4 +42,5 @@ export const moduleLabels: Record<ModuleId, string> = {
   contratos: "Contratos",
   obras: "Obras",
   receitas: "Receitas",
+  despesas: "Despesas",
 };
