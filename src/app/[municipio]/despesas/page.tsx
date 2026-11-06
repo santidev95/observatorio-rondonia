@@ -4,7 +4,7 @@ import { Geist } from "next/font/google";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ContractsDataError } from "@/core/contracts-query";
-import { parseExpensesQuery } from "@/core/expenses";
+import { parseExpensesQuery, type ExpensesQuery } from "@/core/expenses";
 import {
   dataMunicipality,
   expensesFirstYear,
@@ -48,16 +48,16 @@ export default async function ExpensesPage({ params, searchParams }: Props) {
   if (!city) notFound();
   await connection();
   let result: Awaited<ReturnType<typeof getExpenses>> | undefined;
-  let invalidQuery = false;
+  let query: ExpensesQuery | undefined;
+  let problem: string | undefined;
   try {
-    result = await getExpenses(
-      parseExpensesQuery(await searchParams),
-      city.slug,
-    );
+    query = parseExpensesQuery(await searchParams);
+    result = await getExpenses(query, city.slug);
   } catch (error) {
-    invalidQuery =
-      error instanceof ContractsDataError && error.code === "invalid-query";
+    if (error instanceof ContractsDataError) problem = error.code;
   }
+  const outOfRange = problem === "page-out-of-range";
+  const invalidQuery = problem === "invalid-query";
   const catalog = result?.data;
   const download =
     catalog &&
@@ -115,13 +115,28 @@ export default async function ExpensesPage({ params, searchParams }: Props) {
       </header>
       {!result && (
         <section className="contracts-unavailable" role="status">
-          <h2>{invalidQuery ? "Revise o filtro" : "Consulta indisponível"}</h2>
+          <h2>
+            {outOfRange
+              ? "Página não encontrada"
+              : invalidQuery
+                ? "Revise o filtro"
+                : "Consulta indisponível"}
+          </h2>
           <p>
-            {invalidQuery
-              ? "O exercício ou a página informada não é válido."
-              : "Não foi possível consultar as despesas agora. Tente novamente em alguns instantes ou acesse a fonte oficial."}
+            {outOfRange
+              ? `A fonte não tem essa página de ${query?.view} em ${query?.year}.`
+              : invalidQuery
+                ? "O exercício ou a página informada não é válido."
+                : "Não foi possível consultar as despesas agora. Tente novamente em alguns instantes ou acesse a fonte oficial."}
           </p>
-          {invalidQuery ? (
+          {outOfRange ? (
+            <Link
+              href={`/${city.slug}/despesas?visao=${query?.view}&ano=${query?.year}`}
+              prefetch={false}
+            >
+              Voltar à primeira página →
+            </Link>
+          ) : invalidQuery ? (
             <Link href={`/${city.slug}/despesas`} prefetch={false}>
               Voltar à primeira página →
             </Link>

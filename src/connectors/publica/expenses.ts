@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ContractsDataError } from "../../core/contracts-query";
 import {
   EXPENSES_PAGE_SIZE,
   expensePageSchema,
@@ -158,7 +159,7 @@ export function createPublicaExpenses(municipality: PublicaMunicipality) {
     if (parsed.perPage !== EXPENSES_PAGE_SIZE)
       throw new Error("Tamanho da página oficial municipal mudou.");
     if (page > parsed.lastPage)
-      throw new Error("Página fora do catálogo de despesas municipal.");
+      throw new ContractsDataError("page-out-of-range");
     const common = {
       year,
       warnings: [],

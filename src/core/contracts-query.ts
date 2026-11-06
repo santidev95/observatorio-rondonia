@@ -1,11 +1,19 @@
 import { contractsQuerySchema, type ContractsQuery } from "./contracts";
 
-export type ContractsDataErrorCode = "source-unavailable" | "invalid-query";
+export type ContractsDataErrorCode =
+  "source-unavailable" | "invalid-query" | "page-out-of-range";
 
 const errorMessages: Record<ContractsDataErrorCode, string> = {
   "source-unavailable":
     "A fonte oficial não respondeu com uma página válida. Tente novamente mais tarde.",
   "invalid-query": "Consulta inválida. Confira a página e o ano informados.",
+  "page-out-of-range": "A fonte não tem essa página para a consulta informada.",
+};
+
+const errorStatus: Record<ContractsDataErrorCode, number> = {
+  "source-unavailable": 502,
+  "invalid-query": 400,
+  "page-out-of-range": 404,
 };
 
 export class ContractsDataError extends Error {
@@ -16,7 +24,7 @@ export class ContractsDataError extends Error {
     super(errorMessages[code]);
     this.name = "ContractsDataError";
     this.code = code;
-    this.status = code === "invalid-query" ? 400 : 502;
+    this.status = errorStatus[code];
   }
 }
 

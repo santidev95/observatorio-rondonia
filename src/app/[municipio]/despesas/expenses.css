@@ -54,3 +54,8 @@
     width: 180px;
   }
 }
+.contracts-catalog .expense-link-pending {
+  display: inline-flex;
+  width: 12px;
+  margin-left: 6px;
+}

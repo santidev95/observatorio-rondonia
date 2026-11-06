@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, NativeSelect, Table } from "@mantine/core";
-import Link from "next/link";
+import { Button, Loader, NativeSelect, Table } from "@mantine/core";
+import Link, { useLinkStatus } from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import type {
@@ -26,6 +26,21 @@ function pageUrl(
   const params = new URLSearchParams({ visao: view, ano: String(year) });
   if (page > 1) params.set("page", String(page));
   return `/${municipality}/despesas?${params}`;
+}
+
+// A troca de aba ou página só muda a query string: o loading.tsx não aparece nela.
+function LinkPending() {
+  const { pending } = useLinkStatus();
+  return (
+    <span className="expense-link-pending" role="status">
+      {pending && (
+        <>
+          <Loader size={12} aria-hidden="true" />
+          <span className="contracts-sr-only">Consultando a fonte…</span>
+        </>
+      )}
+    </span>
+  );
 }
 
 function Creditor({ record }: { record: CommitmentRecord | PaymentRecord }) {
@@ -129,6 +144,7 @@ export function ExpenseCatalog({
               prefetch={false}
             >
               {id === "empenhos" ? "Empenhos" : "Pagamentos"}
+              <LinkPending />
             </Button>
           ))}
         </nav>
@@ -138,6 +154,10 @@ export function ExpenseCatalog({
           label="Exercício"
           value={year}
           disabled={pending}
+          aria-busy={pending}
+          rightSection={
+            pending ? <Loader size="xs" aria-hidden="true" /> : undefined
+          }
           onChange={(event) => {
             const next = Number(event.target.value);
             startTransition(() =>
@@ -272,6 +292,7 @@ export function ExpenseCatalog({
               prefetch={false}
             >
               Anterior
+              <LinkPending />
             </Button>
           ) : (
             <Button type="button" disabled>
@@ -290,6 +311,7 @@ export function ExpenseCatalog({
               prefetch={false}
             >
               Próxima
+              <LinkPending />
             </Button>
           ) : (
             <Button type="button" disabled>

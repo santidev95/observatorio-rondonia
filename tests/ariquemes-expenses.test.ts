@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { fetchAriquemesExpensesPage } from "../src/connectors/ariquemes/expenses";
 import type { ContractsCacheStore } from "../src/core/contracts-cache";
 import { ContractsDataError } from "../src/core/contracts-query";
+import { readSource } from "../src/core/contracts-reader";
 import {
   expensePageSchema,
   parseExpensesQuery,
@@ -295,17 +296,35 @@ test("Despesas: resposta divergente nunca vira página publicável", async () =>
       body("empenhos", [commitment(1, { DTEMPENHO: "31/02/2026" })]),
     ],
     ["campo ausente", commitments(), body("empenhos", [{ PKEMP: 1 }])],
-    [
-      "página além do fim",
-      commitments(9),
-      body("empenhos", [], { page: 9, total: 10 }),
-    ],
   ];
   for (const [label, query, payload] of rejected)
     await assert.rejects(
       fetchAriquemesExpensesPage(query, signal(), fixture(payload)),
       label,
     );
+});
+
+test("Despesas: página além do fim é distinta de falha da fonte", async () => {
+  const load = (abort: AbortSignal) =>
+    fetchAriquemesExpensesPage(
+      commitments(9),
+      abort,
+      fixture(body("empenhos", [], { page: 9, total: 10 })),
+    );
+  const outOfRange = (error: unknown) =>
+    error instanceof ContractsDataError &&
+    error.code === "page-out-of-range" &&
+    error.status === 404;
+  await assert.rejects(load(signal()), outOfRange);
+  await assert.rejects(readSource(load, { timeoutMs: 1000 }), outOfRange);
+  await assert.rejects(
+    readSource(() => Promise.reject(new Error("Falha do conector.")), {
+      timeoutMs: 1000,
+    }),
+    (error) =>
+      error instanceof ContractsDataError &&
+      error.code === "source-unavailable",
+  );
 });
 
 test("Despesas: falha HTTP e consulta inválida não produzem catálogo vazio", async () => {

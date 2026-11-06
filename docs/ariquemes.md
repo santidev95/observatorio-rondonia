@@ -46,7 +46,7 @@ Endpoints: `/api/despesas/empenhos/{exercicio}/1` e `/api/despesas/pagamentos/{e
 
 Em 05/11/2026, a fonte entregou Despesas de 2017 em diante e retornou erro 5xx nos exercícios consultados de 2000, 2012 a 2016; por isso o seletor começa em 2017. A rota continua aceitando o intervalo geral e informa indisponibilidade nesses anos. A primeira leitura de um exercício é lenta (até 13,8 s na amostra, cerca de 2,5 s nas seguintes), então esse módulo aguarda até 25 s pela fonte, contra 12 s dos demais.
 
-A fonte só filtra por `pkemp`, então não há busca no catálogo inteiro. A ordem é a da fonte: não segue `PKEMP`, e a estabilidade entre consultas não foi comprovada, de modo que um registro pode mudar de página.
+Uma página além do fim do exercício, conforme a paginação informada pela fonte, aparece como "Página não encontrada" (404 no JSON), sem cache e sem ser confundida com indisponibilidade. A fonte só filtra por `pkemp`, então não há busca no catálogo inteiro. A ordem é a da fonte: não segue `PKEMP`, e a estabilidade entre consultas não foi comprovada, de modo que um registro pode mudar de página.
 
 A paginação vem em `empenhos.empenhos` ou `pagamentos.pagamentos`, ao lado de `totais`, que se referem ao exercício inteiro. Os totais são exibidos como informados pela fonte: o Observatório não os soma nem os confere linha a linha. Na amostra, `TOTAL_PAGO` coincidiu entre as duas rotas, o que é um indício de coerência, não uma prova. Empenhado, liquidado e pago são etapas da mesma despesa e não são somados entre si.
 
