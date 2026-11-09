@@ -49,6 +49,7 @@ flowchart LR
 - A ficha de Contratos da Pública depende da leitura completa do exercício, pois a API não oferece detalhe por código. Há limite de 5.000 registros e 500 páginas; erro, limite excedido ou cobertura alterada não viram registro inexistente.
 - `connection()` exclui as consultas do build; `fetch` usa `cache: "no-store"`.
 - Timeout, limite de tamanho da resposta e erros públicos sem conteúdo bruto.
+- `robots.txt` pede aos buscadores que não acessem `/api/` nem URLs de Despesas com parâmetros, porque cada página fora do cache consome o limite compartilhado da fonte. É uma orientação: não protege a fonte de quem a ignora.
 - IDs únicos, identidade municipal, contagens e metadados são conferidos antes de responder. Porto Velho pode devolver ano divergente do filtro, preservado com aviso. Contratos e Obras da Pública distinguem o exercício da consulta do ano publicado no registro, preservando divergências com aviso; o critério interno do filtro da fonte não é presumido.
 - Falhas não geram catálogo vazio, zero estimado nem fallback silencioso.
 - HTML e JSON compartilham o leitor e o cache. A API municipal é consultada quando a chave não existe, expirou ou não pôde ser lida. `fetchedAt` sempre indica a consulta original à fonte; hits não renovam a validade.
