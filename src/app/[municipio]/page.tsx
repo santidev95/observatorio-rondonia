@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { getMunicipality, listMunicipalities } from "@/municipalities";
 import { moduleIds, moduleLabels } from "@/core/municipality";
 import { repositoryUrl } from "@/components/chrome";
-import { FileSearch, Works, Revenues } from "@/features/shared/icons";
+import { Expenses, FileSearch, Works, Revenues } from "@/features/shared/icons";
 
 const modulePresentation = {
   contratos: {
@@ -22,6 +22,10 @@ const modulePresentation = {
   receitas: {
     icon: Revenues,
     description: "Explore receitas e a previsão orçamentária por exercício.",
+  },
+  despesas: {
+    icon: Expenses,
+    description: "Consulte empenhos e pagamentos publicados por exercício.",
   },
 };
 
@@ -56,7 +60,7 @@ export default async function MunicipalityPage({ params }: Props) {
       <h1>{city.name}</h1>
       <p className="page-description">
         {integrated
-          ? `Obras, contratos e receitas de ${city.name}, com acesso às fontes oficiais e limites de cobertura por módulo.`
+          ? `${city.modules.despesas.status === "available" ? "Obras, contratos, receitas e despesas" : "Obras, contratos e receitas"} de ${city.name}, com acesso às fontes oficiais e limites de cobertura por módulo.`
           : city.description}
       </p>
       {!integrated && (

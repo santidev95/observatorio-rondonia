@@ -49,6 +49,11 @@ function Icon({
         <>
           <path d="M9 19c-4.3 1.4-4.3-2.5-6-3M15 22v-3.9a3.4 3.4 0 0 0-.9-2.6c3-.3 6.1-1.4 6.1-6.7a5.2 5.2 0 0 0-1.4-3.6 4.8 4.8 0 0 0-.1-3.6S17.6 1.3 15 3a12.4 12.4 0 0 0-6 0C6.4 1.3 5.3 1.6 5.3 1.6a4.8 4.8 0 0 0-.1 3.6 5.2 5.2 0 0 0-1.4 3.6c0 5.3 3.1 6.4 6.1 6.7a3.4 3.4 0 0 0-.9 2.6V22" />
         </>
+      ) : kind === "expenses" ? (
+        <>
+          <path d="M5 2v20l3-2 2 2 2-2 2 2 2-2 3 2V2z" />
+          <path d="M9 8h6M9 13h6" />
+        </>
       ) : (
         <>
           <path d="M14 2H6v20h12V6z" />
@@ -66,5 +71,6 @@ export const Download = (p: Props) => <Icon {...p} kind="download" />;
 export const ArrowUpRight = (p: Props) => <Icon {...p} kind="arrow" />;
 export const Works = (p: Props) => <Icon {...p} kind="works" />;
 export const Revenues = (p: Props) => <Icon {...p} kind="revenues" />;
+export const Expenses = (p: Props) => <Icon {...p} kind="expenses" />;
 export const Scales = (p: Props) => <Icon {...p} kind="scales" />;
 export const GitHub = (p: Props) => <Icon {...p} kind="github" />;

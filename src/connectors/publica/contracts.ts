@@ -70,7 +70,7 @@ function parseContractId(
   }
 }
 
-function supplier(document: string | null, rawName: string | null) {
+export function supplier(document: string | null, rawName: string | null) {
   const identity = (document ?? "").trim();
   const compact = identity.replace(/[.\/\-\s]/g, "");
   const cnpjShape =

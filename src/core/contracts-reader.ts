@@ -34,6 +34,11 @@ export async function readSource<T>(
   } catch (error) {
     controller.abort();
     if (error instanceof MunicipalSourceError) throw error;
+    if (
+      error instanceof ContractsDataError &&
+      error.code === "page-out-of-range"
+    )
+      throw error;
     throw new ContractsDataError("source-unavailable");
   } finally {
     if (timer !== undefined) clearTimeout(timer);

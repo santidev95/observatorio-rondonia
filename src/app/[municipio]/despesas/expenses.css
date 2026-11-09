@@ -1,0 +1,61 @@
+.contracts-catalog .expense-controls {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.contracts-catalog .expense-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.contracts-catalog .expense-totals {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+.contracts-catalog .expense-totals dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+.contracts-catalog .expense-totals dt {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+.contracts-catalog .expense-totals dd {
+  margin: 0;
+  color: var(--gold-soft);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+.contracts-catalog .expense-totals p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+@media (max-width: 700px) {
+  .contracts-catalog .expense-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+@media (min-width: 701px) {
+  .contracts-catalog .expense-controls .select-wrap {
+    flex: 0 0 180px;
+    width: 180px;
+  }
+}
+.contracts-catalog .expense-link-pending {
+  display: inline-flex;
+  width: 12px;
+  margin-left: 6px;
+}

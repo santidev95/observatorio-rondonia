@@ -13,6 +13,12 @@ export const ariquemesWorksSource = {
   name: "API de obras da Prefeitura de Ariquemes (UG 1)",
 } as const;
 
+export const ariquemesExpensesSource = {
+  ...ariquemesSource,
+  module: "despesas",
+  name: "API de despesas da Prefeitura de Ariquemes (UG 1)",
+} as const;
+
 export const ariquemesRevenuesSource = {
   ...ariquemesSource,
   module: "receitas",
